@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFramework>netstandard2.0</TargetFramework>
+	<LangVersion>preview</LangVersion>
+	<IsRoslynComponent>true</IsRoslynComponent>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <StaticTemplates Include="Templates/*.cs" />
+	  <Compile Remove="@(StaticTemplates)" />
+	  <EmbeddedResource Include="@(StaticTemplates)" />
+	  <EmbeddedResource Include="ExtStringBuilder.cs" />
+	  <EmbeddedResource Include="Serializers/JsonSerializerOptions.cs" />
+	  <EmbeddedResource Include="Serializers/YamlSerializerOptions.cs" />
+	  <EmbeddedResource Include="Serializers/XmlSerializerOptions.cs" />
+	  <Compile Include="Templates/ESerializers.cs" />
+	  <Compile Include="Templates/SerializerAttribute.cs" />
+  </ItemGroup>
+  <ItemGroup>
+	<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
+	<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,21 @@
+{
+  "profiles": {
+    "WSL": {
+      "commandName": "WSL2",
+      "environmentVariables": {},
+      "distributionName": ""
+    },
+    "JSON": {
+      "commandName": "Project",
+      "commandLineArgs": "-s Json"
+    },
+    "YAML": {
+      "commandName": "Project",
+      "commandLineArgs": "-s Yaml"
+    },
+    "XML": {
+      "commandName": "Project",
+      "commandLineArgs": "-s Xml"
+    }
+  }
+}
