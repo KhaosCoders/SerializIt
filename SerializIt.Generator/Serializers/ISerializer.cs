@@ -4,6 +4,8 @@ namespace SerializIt;
 
 internal interface ISerializer
 {
+    bool SkipNullValues { get; }
+
     void Usings(ExtStringBuilder sb, SerializeType typeInfo);
 
     void StartElementFunc(SerializationContext context, SerializeType typeInfo, ExtStringBuilder sb);
@@ -30,4 +32,6 @@ internal interface ISerializer
 
     void StartNotDefaultCondition(string memberName, ExtStringBuilder sb);
     void EndNotDefaultCondition(string memberName, ExtStringBuilder sb);
+    void StartMemberNullCheck(string memberName, ExtStringBuilder sb);
+    void EndMemberNullCheck(string memberName, ExtStringBuilder sb);
 }

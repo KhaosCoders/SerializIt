@@ -85,7 +85,19 @@ internal class SerializationGenerator
                 context.Serializer.StartNotDefaultCondition(memberName, sb);
             }
             context.Serializer.StartMember(member, i == 0, sb);
+
+            if (member.MemberType.IsReferenceType && !context.Serializer.SkipNullValues)
+            {
+                context.Serializer.StartMemberNullCheck(memberName, sb);
+            }
+
             WriteMemberValue(context, member.MemberType, memberName, sb);
+
+            if (member.MemberType.IsReferenceType && !context.Serializer.SkipNullValues)
+            {
+                context.Serializer.EndMemberNullCheck(memberName, sb);
+            }
+
             context.Serializer.EndMember(member, i == members.Count - 1, sb);
 
             if (member.SkipIfDefault)

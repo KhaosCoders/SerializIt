@@ -7,6 +7,7 @@ internal struct JsonSerializerOptions
     public bool PrettyPrint { get; set; }
     public bool UseSingleQuotes { get; set; }
     public string IndentChars { get; set; }
+    public bool SkipNullValues { get; set; }
     public char Quotes => UseSingleQuotes ? '\'' : '"';
 }
 
@@ -17,13 +18,15 @@ internal class JsonOptionsAttribute : Attribute
 
     public JsonOptionsAttribute(bool prettyPrint = false,
                                 bool useSingeQuotes = false,
-                                string indentChars = default)
+                                string indentChars = default,
+                                bool skipNullValues = true)
     {
         Options = new JsonSerializerOptions()
         {
             PrettyPrint = prettyPrint,
             UseSingleQuotes = useSingeQuotes,
-            IndentChars = indentChars
+            IndentChars = indentChars,
+            SkipNullValues = skipNullValues
         };
     }
 }

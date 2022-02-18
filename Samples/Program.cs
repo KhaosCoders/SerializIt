@@ -31,6 +31,11 @@ static void Run(Options o)
             {
                 Id = 2,
                 Info = new() { Info1 = "test2\r\nmultiline", Info2 = 200 }
+            },
+            new Container()
+            {
+                Id = 4,
+                Info = null
             }
         }
     };

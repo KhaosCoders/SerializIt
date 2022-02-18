@@ -8,6 +8,8 @@ internal class JsonSerializer : BaseSerializer
 {
     public JsonSerializerOptions Options { get; set; }
 
+    public override bool SkipNullValues => Options.SkipNullValues;
+
     public override void Usings(ExtStringBuilder sb, SerializeType typeInfo)
     {
         base.Usings(sb, typeInfo);
@@ -54,6 +56,11 @@ internal class JsonSerializer : BaseSerializer
 
     public override void StartMember(SerializeMember member, bool firstMember, ExtStringBuilder sb)
     {
+        if (Options.SkipNullValues)
+        {
+            sb.Append(".Conditional(() => item.").Append(member.MemberName).AppendLine(" != null,").IncreaseIndent()
+              .Append("sb => sb");
+        }
         if (!firstMember)
         {
             if (Options.PrettyPrint)
@@ -82,6 +89,10 @@ internal class JsonSerializer : BaseSerializer
         if (lastMember && Options.PrettyPrint)
         {
             sb.AppendLine(".AppendLine(string.Empty)");
+        }
+        if (Options.SkipNullValues)
+        {
+            sb.DecreaseIndent().AppendLine(")");
         }
     }
 

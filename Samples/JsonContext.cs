@@ -4,7 +4,7 @@ using Samples.Model;
 namespace Samples
 {
     [Serializer(ESerializers.Json, "Samples.JsonSerializers")]
-    [JsonOptions(true, indentChars: "  ")]
+    [JsonOptions(true, indentChars: "  ", skipNullValues: false)]
     [SerializeType(typeof(RootElement))]
     [SerializeType(typeof(Container))]
     [SerializeType(typeof(Info))]

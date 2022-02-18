@@ -4,16 +4,22 @@ namespace SerializIt.Generator.Serializers;
 
 internal abstract class BaseSerializer : ISerializer
 {
+    public virtual bool SkipNullValues => true;
+
     public virtual void Usings(ExtStringBuilder sb, SerializeType typeInfo) =>
-    sb.AppendLine("using System.Text;")
-      .AppendLine("using System.Linq;")
-      .AppendLine("using SerializIt;")
-      .Append("using ").Append(typeInfo.Namespace).AppendLine(";");
+        sb.AppendLine("using System.Text;")
+          .AppendLine("using System.Linq;")
+          .AppendLine("using SerializIt;")
+          .Append("using ").Append(typeInfo.Namespace).AppendLine(";");
 
     public virtual void StartElementFunc(SerializationContext context, SerializeType typeInfo, ExtStringBuilder sb) =>
         sb.Append("internal void SerializeElement(").Append(typeInfo.Namespace).Append('.').Append(typeInfo.TypeName).AppendLine(" item, ExtStringBuilder sb)")
           .AppendLine("{").IncreaseIndent()
           .AppendLine("sb").IncreaseIndent();
+
+    public virtual void AppendNull(ExtStringBuilder sb) =>
+        sb.Append(@"sb.Append(""null"");");
+
     public virtual void EndElementFunc(SerializationContext context, SerializeType typeInfo, ExtStringBuilder sb) =>
         sb.AppendLine(";").DecreaseIndent()
           .DecreaseIndent().AppendLine("}");
@@ -62,4 +68,12 @@ internal abstract class BaseSerializer : ISerializer
 
     public abstract string StartCollection(string typeName, string memberName, ExtStringBuilder sb);
     public abstract void EndCollection(string memberName, ExtStringBuilder sb);
+
+    public void StartMemberNullCheck(string memberName, ExtStringBuilder sb) =>
+        sb.Append(".Conditional(() => ").Append(memberName).AppendLine(" == null,").IncreaseIndent()
+          .AppendLine(@"sb => sb.Append(""null""),")
+          .Append("sb => sb");
+
+    public void EndMemberNullCheck(string memberName, ExtStringBuilder sb) =>
+        sb.DecreaseIndent().AppendLine(")");
 }
