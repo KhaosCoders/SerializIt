@@ -45,9 +45,10 @@ public class SerializItGenerator : ISourceGenerator
             foreach (var attribute in classSymbol.GetAttributes().Where(a => a.AttributeClass.Name == nameof(Resources.SerializeTypeAttribute)))
             {
                 if (attribute.ConstructorArguments.Length < 1
-                    || attribute.ConstructorArguments[0].Value is not INamedTypeSymbol targetTypeSymbol)
+                    || attribute.ConstructorArguments[0].Value is not INamedTypeSymbol targetTypeSymbol
+                    || targetTypeSymbol.Kind == SymbolKind.ErrorType)
                 {
-                    return;
+                    continue;
                 }
 
                 serializationContext.SerializeTypes.Add(CollectSerializationInfo(targetTypeSymbol));
@@ -149,14 +150,15 @@ public class SerializItGenerator : ISourceGenerator
 
         void AddTypeFromResource(string name, string source)
         {
-            if (source != null)
+            if (source == null)
             {
-                context.AddSource($"{name}.generated.cs", SourceText.From(source, Encoding.UTF8));
+                throw new ArgumentException($"Source can not be null. Class: {name}");
+            }
+            context.AddSource($"{name}.generated.cs", SourceText.From(source, Encoding.UTF8));
 
-                if (initCodeActivator)
-                {
-                    CodeActivator.AddStaticCode(source);
-                }
+            if (initCodeActivator)
+            {
+                CodeActivator.AddStaticCode(source);
             }
         }
 
@@ -165,7 +167,7 @@ public class SerializItGenerator : ISourceGenerator
         AddTypeFromResource(nameof(Resources.SerializeTypeAttribute), Resources.SerializeTypeAttribute.Value);
         AddTypeFromResource(nameof(Resources.SkipAttribute), Resources.SkipAttribute.Value);
         AddTypeFromResource(nameof(Resources.OrderAttribute), Resources.OrderAttribute.Value);
-        AddTypeFromResource(nameof(Resources.ExtStringBuilder), Resources.ExtStringBuilder.Value);
+        AddTypeFromResource(nameof(Resources.IndentedWriter), Resources.IndentedWriter.Value);
         AddTypeFromResource(nameof(Resources.ISerializerOptions), Resources.ISerializerOptions.Value);
         AddTypeFromResource(nameof(Resources.JsonSerializerOptions), Resources.JsonSerializerOptions.Value);
         AddTypeFromResource(nameof(Resources.YamlSerializerOptions), Resources.YamlSerializerOptions.Value);

@@ -1,9 +1,13 @@
 ﻿using BenchmarkDotNet.Attributes;
 using SerializIt.Benchmarks.Model;
+using SerializIt.Benchmarks.SerializIt;
+using SerializIt.Benchmarks.SystemText2;
+using SerializIt.Benchmarks.SystemText3;
 using System.Text.Json;
 
 namespace SerializIt.Benchmarks;
 
+[MemoryDiagnoser]
 public class PokedexBenchmark
 {
     private readonly Pokedex _pokedex;
@@ -19,9 +23,48 @@ public class PokedexBenchmark
     }
 
     [Benchmark]
-    public string SerializIt()
+    public string SerializItJson()
     {
         PokedexJsonContext ctx = new();
         return ctx.Pokedex.SerializeDocument(_pokedex);
     }
+
+    [Benchmark]
+    public string SerializItFormattedJson()
+    {
+        PokedexFormattedJsonContext ctx = new();
+        return ctx.Pokedex.SerializeDocument(_pokedex);
+    }
+
+    /* [Benchmark]
+     public string SystemTextJson()
+     {
+         System.Text.Json.JsonSerializerOptions options = new()
+         {
+             WriteIndented = false,
+         };
+         return JsonSerializer.Serialize(_pokedex, options);
+     }
+
+     [Benchmark]
+     public string SystemTextFormattedJson()
+     {
+         System.Text.Json.JsonSerializerOptions options = new()
+         {
+             WriteIndented = true,
+         };
+         return JsonSerializer.Serialize(_pokedex, options);
+     }*/
+
+    [Benchmark]
+    public string SystemTextJsonSG()
+    {
+        return JsonSerializer.Serialize(_pokedex, PokedexJsonContext2.Default.Pokedex);
+    }
+    [Benchmark]
+    public string SystemTextFormattedJsonSG()
+    {
+        return JsonSerializer.Serialize(_pokedex, PokedexJsonContext3.Default.Pokedex);
+    }
+
 }

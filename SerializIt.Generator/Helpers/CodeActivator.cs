@@ -52,7 +52,9 @@ namespace SerializIt.Generator.Helpers
             {
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Stack<int>).Assembly.Location)
+                MetadataReference.CreateFromFile(typeof(Stack<int>).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Accessibility).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(CSharpCompilation).Assembly.Location)
             };
 
             var syntaxTree = CSharpSyntaxTree.ParseText(code);

@@ -8,109 +8,164 @@ internal class XmlSerializer : BaseSerializer
 {
     public XmlSerializerOptions Options { get; set; }
 
-    public override void StartCode(ExtStringBuilder sb)
+    public override void StartCode(IndentedWriter writer)
     {
-        base.StartCode(sb);
+        base.StartCode(writer);
         if (Options.IndentChars != default)
         {
-            sb.Append(@".SetIndentation(""").Append(Options.IndentChars).AppendLine(@""")");
+            writer.NewLine();
+            writer.Write(@"writer.IndentChars = """);
+            writer.Write(Options.IndentChars);
+            writer.Write(@""";");
         }
     }
 
-    public override void StartDocument(SerializeType typeInfo, ExtStringBuilder sb)
+    public override void StartDocument(SerializeType typeInfo, IndentedWriter writer)
     {
         if (Options.AddDocTag)
         {
-            sb.AppendLine(@".AppendLine(@""<?xml version=""""1.0"""" encoding=""""UTF-8""""?>"")");
+            writer.NewLine();
+            writer.Write(@"writer.Write(@""<?xml version=""""1.0"""" encoding=""""UTF-8""""?>"");");
+            writer.NewLine();
+            writer.Write("writer.NewLine();");
         }
     }
 
-    public override void StartRootElement(SerializeType typeInfo, ExtStringBuilder sb)
+    public override void StartRootElement(SerializeType typeInfo, IndentedWriter writer)
+    {
+        writer.NewLine();
+        writer.Write(@"writer.Write(""<");
+        writer.Write(FormatTagName(typeInfo.TypeName));
+        writer.Write(@">"");");
+        writer.NewLine();
+        writer.Write("writer.StartLayer();");
+        if (Options.PrettyPrint)
+        {
+            writer.NewLine();
+            writer.Write("writer.Indent++;");
+            writer.NewLine();
+            writer.Write("writer.NewLine();");
+        }
+    }
+
+    public override void EndRootElement(SerializeType typeInfo, IndentedWriter writer)
     {
         if (Options.PrettyPrint)
         {
-            sb.Append(@".AppendLine(""<").Append(FormatTagName(typeInfo.TypeName)).AppendLine(@">"").StartLayer().IncreaseIndent()");
+            writer.NewLine();
+            writer.Write("writer.Indent--;");
         }
-        else
-        {
-            sb.Append(@".AppendL(""<").Append(FormatTagName(typeInfo.TypeName)).AppendLine(@">"").StartLayer()");
-        }
+        writer.NewLine();
+        writer.Write(@"writer.Write(""</");
+        writer.Write(FormatTagName(typeInfo.TypeName));
+        writer.Write(@">"");");
+        writer.NewLine();
+        writer.Write("writer.EndLayer();");
     }
 
-    public override void EndRootElement(SerializeType typeInfo, ExtStringBuilder sb)
+    public override void StartMember(SerializeMember member, bool firstMember, IndentedWriter writer)
     {
-        if (Options.PrettyPrint)
-        {
-            sb.Append(@".DecreaseIndent().AppendLine(""</").Append(FormatTagName(typeInfo.TypeName)).AppendLine(@">"").EndLayer()");
-        }
-        else
-        {
-            sb.Append(@".Append(""</").Append(FormatTagName(typeInfo.TypeName)).AppendLine(@">"").EndLayer()");
-        }
-    }
-
-    public override void StartMember(SerializeMember member, bool firstMember, ExtStringBuilder sb)
-    {
-        sb.Append(".SetLayer()");
+        writer.NewLine();
+        writer.Write("writer.IsLayerSet = true;");
+        writer.NewLine();
+        writer.Write(@"writer.Write(""<");
+        writer.Write(FormatTagName(member.MemberName));
+        writer.Write(@">"");");
 
         if (Options.PrettyPrint && !member.MemberType.IsValueType)
         {
-            sb.Append(@".AppendLine(""<").Append(FormatTagName(member.MemberName)).AppendLine(@">"").IncreaseIndent()");
+            writer.NewLine();
+            writer.Write("writer.NewLine();");
+            writer.NewLine();
+            writer.Write("writer.Indent++;");
+        }
+    }
+
+    public override void EndMember(SerializeMember member, bool lastMember, IndentedWriter writer)
+    {
+        if (Options.PrettyPrint)
+        {
+            writer.NewLine();
+            writer.Write("writer.Indent--;");
+        }
+        writer.NewLine();
+        writer.Write(@"writer.Write(""</");
+        writer.Write(FormatTagName(member.MemberName));
+        writer.Write(@">"");");
+        if (Options.PrettyPrint)
+        {
+            writer.NewLine();
+            writer.Write("writer.NewLine();");
+        }
+    }
+
+    public override string StartCollection(string typeName, string memberName, bool isArray, IndentedWriter writer)
+    {
+        if (Options.PrettyPrint)
+        {
+            writer.NewLine();
+            writer.Write("if(");
+            writer.Write(memberName);
+            if (isArray)
+            {
+                writer.Write(".Length > 0)");
+            }
+            else
+            {
+                writer.Write(".Count > 0)");
+            }
+            writer.NewLine();
+            writer.Write('{');
+            writer.Indent++;
+            writer.NewLine();
+            writer.Write("writer.Indent++;");
+        }
+        writer.NewLine();
+        writer.Write("for(int n = 0;n < ");
+        writer.Write(memberName);
+        if (isArray)
+        {
+            writer.Write(".Length");
         }
         else
         {
-            sb.Append(@".Append(""<").Append(FormatTagName(member.MemberName)).AppendLine(@">"")");
+            writer.Write(".Count");
         }
+        writer.Write(";n++)");
+        writer.NewLine();
+        writer.Write("{");
+        writer.Indent++;
+
+        return $"{memberName}[n]";
     }
 
-    public override void EndMember(SerializeMember member, bool lastMember, ExtStringBuilder sb)
+    public override void EndCollection(string memberName, IndentedWriter writer)
     {
-        if (Options.PrettyPrint)
-        {
-            sb.Append(@".DecreaseIndent().AppendLine(""</").Append(FormatTagName(member.MemberName)).AppendLine(@">"")");
-        }
-        else
-        {
-            sb.Append(@".Append(""</").Append(FormatTagName(member.MemberName)).AppendLine(@">"")");
-        }
-    }
-
-    public override string StartCollection(string typeName, string memberName, ExtStringBuilder sb)
-    {
-        if (Options.PrettyPrint)
-        {
-            sb.Append(".Conditional(() => ").Append(memberName).AppendLine(".Any(),").IncreaseIndent()
-              .AppendLine(@"sb => sb.IncreaseIndent()")
-              .DecreaseIndent().AppendLine(")");
-        }
-        sb.AppendLine(".Append(sb =>").IncreaseIndent()
-          .AppendLine("{").IncreaseIndent()
-          .Append("foreach(").Append(typeName).Append(" i in ").Append(memberName).AppendLine(")")
-          .AppendLine("{").IncreaseIndent()
-          .Append("sb");
-
-        return "i";
-    }
-
-    public override void EndCollection(string memberName, ExtStringBuilder sb)
-    {
-        sb.AppendLine(";")
-          .DecreaseIndent().AppendLine("}")
-          .DecreaseIndent().AppendLine("})")
-          .DecreaseIndent();
+        writer.Indent--;
+        writer.NewLine();
+        writer.Write('}');
 
         if (Options.PrettyPrint)
         {
-            sb.Append(".Conditional(() => ").Append(memberName).AppendLine(".Any(),").IncreaseIndent()
-              .AppendLine("sb => sb.DecreaseIndent()")
-              .DecreaseIndent().AppendLine(")");
+            writer.NewLine();
+            writer.Write("writer.Indent--;");
+            writer.Indent--;
+            writer.NewLine();
+            writer.Write("}");
         }
     }
 
-    public override void WriteStringMember(string memberName, ExtStringBuilder sb) =>
-        sb.Append(@".Append(""<![CDATA["")")
-          .Append(".Append(").Append(memberName).Append(")")
-          .Append(@".Append(""]]>"")");
+    public override void WriteStringMember(string memberName, IndentedWriter sb)
+    {
+        sb.NewLine();
+        sb.Write(@"writer.Write(""<![CDATA["");");
+        sb.NewLine();
+        sb.Write("writer.Write(");
+        sb.Write(memberName);
+        sb.Write(");");
+        sb.NewLine();
+        sb.Write(@"writer.Write(""]]>"");");
+    }
 
     private string FormatTagName(string name) =>
         Options.LowercaseTags ? name.ToLowerInvariant() : name;

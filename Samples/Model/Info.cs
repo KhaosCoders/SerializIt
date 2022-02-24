@@ -9,5 +9,7 @@ namespace Samples.Model
 
         [Skip]
         public bool Info3 { get; set; }
+
+        public string[] Infos { get; set; }
     }
 }

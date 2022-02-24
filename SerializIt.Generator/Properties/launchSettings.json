@@ -2,7 +2,7 @@
   "profiles": {
     "SerializIt.Generator": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\Samples\\Samples.csproj"
+      "targetProject": "..\\SerializIt.Benchmarks\\SerializIt.Benchmarks.csproj"
     }
   }
 }

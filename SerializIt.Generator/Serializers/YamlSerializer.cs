@@ -8,107 +8,214 @@ internal class YamlSerializer : BaseSerializer
 {
     public YamlSerializerOptions Options { get; set; }
 
-    public override void StartCode(ExtStringBuilder sb)
+    public override bool SkipNullValues => false;
+
+    public override void StartCode(IndentedWriter writer)
     {
-        base.StartCode(sb);
+        base.StartCode(writer);
         if (Options.IndentChars != default)
         {
-            sb.Append(@".SetIndentation(""").Append(Options.IndentChars).AppendLine(@""")");
+            writer.NewLine();
+            writer.Write(@"writer.IndentChars = """);
+            writer.Write(Options.IndentChars);
+            writer.Write(@""";");
         }
     }
 
-    public override void StartDocument(SerializeType typeInfo, ExtStringBuilder sb)
+    public override void StartDocument(SerializeType typeInfo, IndentedWriter writer)
     {
         if (Options.AddPreamble)
         {
-            sb.AppendLine(@".AppendLine(""---"")");
+            writer.NewLine();
+            writer.Write(@"writer.Write(""---"");");
+            writer.NewLine();
+            writer.Write("writer.NewLine();");
         }
     }
 
-    public override void EndDocument(SerializeType typeInfo, ExtStringBuilder sb)
+    public override void EndDocument(SerializeType typeInfo, IndentedWriter writer)
     {
         if (Options.AddPostamble)
         {
-            sb.Append(@".NoIndent().AppendLine(""---"")");
+            writer.NewLine();
+            writer.Write("writer.NoIndent();");
+            writer.NewLine();
+            writer.Write(@"writer.Write(""---"");");
         }
     }
 
-    public override void StartRootElement(SerializeType typeInfo, ExtStringBuilder sb)
+    public override void StartRootElement(SerializeType typeInfo, IndentedWriter writer)
     {
-        base.StartRootElement(typeInfo, sb);
-        sb.AppendLine(".StartLayer()");
+        base.StartRootElement(typeInfo, writer);
+        writer.NewLine();
+        writer.Write("writer.StartLayer();");
     }
 
-    public override void EndRootElement(SerializeType typeInfo, ExtStringBuilder sb)
+    public override void EndRootElement(SerializeType typeInfo, IndentedWriter writer)
     {
-        sb.AppendLine(".EndLayer()");
-        base.EndRootElement(typeInfo, sb);
+        writer.NewLine();
+        writer.Write("writer.EndLayer();");
+        base.EndRootElement(typeInfo, writer);
     }
 
-    public override void StartMember(SerializeMember member, bool firstMember, ExtStringBuilder sb)
+    public override void StartMember(SerializeMember member, bool firstMember, IndentedWriter writer)
     {
-        sb.Append(".SetLayer()")
-          .Append(@".Append(""").Append(FormatMemberName(member.MemberName)).AppendLine(@": "")");
+        writer.NewLine();
+        writer.Write("writer.IsLayerSet = true;");
+        writer.NewLine();
+        writer.Write(@"writer.Write(""");
+        writer.Write(FormatMemberName(member.MemberName));
+        writer.Write(@": "");");
     }
 
-    public override void EndMember(SerializeMember member, bool lastMember, ExtStringBuilder sb) { }
+    public override void EndMember(SerializeMember member, bool lastMember, IndentedWriter writer) { }
 
-    public override void WriteSerializedMember(string memberName, SerializeType serializedType, ExtStringBuilder sb)
+    public override void WriteSerializedMember(string memberName, SerializeType serializedType, IndentedWriter writer)
     {
         var isMember = memberName != null && serializedType != null;
         if (isMember)
         {
-            sb.AppendLine(".IfLayer(sb => sb.AppendLine(string.Empty).IncreaseIndent())");
+            writer.NewLine();
+            writer.Write("if (writer.IsLayerSet)");
+            writer.NewLine();
+            writer.Write('{');
+            writer.Indent++;
+            writer.NewLine();
+            writer.Write("writer.NewLine();");
+            writer.NewLine();
+            writer.Write("writer.Indent++;");
+            writer.Indent--;
+            writer.NewLine();
+            writer.Write('}');
         }
 
-        base.WriteSerializedMember(memberName, serializedType, sb);
+        base.WriteSerializedMember(memberName, serializedType, writer);
 
         if (isMember)
         {
-            sb.AppendLine(".IfLayer(sb => sb.DecreaseIndent())");
+            writer.NewLine();
+            writer.Write("if (writer.IsLayerSet)");
+            writer.NewLine();
+            writer.Write('{');
+            writer.Indent++;
+            writer.NewLine();
+            writer.Write("writer.Indent--;");
+            writer.Indent--;
+            writer.NewLine();
+            writer.Write('}');
         }
     }
 
-    public override string StartCollection(string typeName, string memberName, ExtStringBuilder sb)
+    public override string StartCollection(string typeName, string memberName, bool isArray, IndentedWriter writer)
     {
-        sb.Append(".Conditional(() => !").Append(memberName).AppendLine(".Any(),").IncreaseIndent()
-          .AppendLine(@"sb => sb.Append(""[ ""),")
-          .AppendLine("sb => sb.AppendLine(string.Empty).IncreaseIndent()")
-          .DecreaseIndent().AppendLine(")");
+        writer.Write("if (");
+        writer.Write(memberName);
+        if (isArray)
+        {
+            writer.Write(".Length > 0)");
+        }
+        else
+        {
+            writer.Write(".Count > 0)");
+        }
+        writer.NewLine();
+        writer.Write('{');
+        writer.Indent++;
+        writer.NewLine();
+        writer.Write(@"writer.Write(""[ ]"");");
+        writer.Indent--;
+        writer.NewLine();
+        writer.Write('}');
+        writer.NewLine();
+        writer.Write("else");
+        writer.NewLine();
+        writer.Write('{');
+        writer.Indent++;
+        writer.NewLine();
+        writer.Write("writer.NewLine();");
+        writer.NewLine();
+        writer.Write("writer.Indent++;");
+        writer.NewLine();
 
-        sb.AppendLine(".Append(sb =>").IncreaseIndent()
-          .AppendLine("{").IncreaseIndent()
-          .Append("foreach(").Append(typeName).Append(" i in ").Append(memberName).AppendLine(")")
-          .AppendLine("{").IncreaseIndent()
-          .AppendLine(@"sb.Append(""- "").IncreaseIndent().StartLayer()");
+        writer.Write("foreach(");
+        writer.Write(typeName);
+        writer.Write(" x in ");
+        writer.Write(memberName);
+        writer.Write(")");
+        writer.NewLine();
+        writer.Write("{");
+        writer.Indent++;
+        writer.NewLine();
+        writer.Write(@"writer.Write(""- "");");
+        writer.NewLine();
+        writer.Write("writer.Indent++;");
+        writer.NewLine();
+        writer.Write("writer.StartLayer();");
 
-        return "i";
+        return "x";
     }
 
-    public override void EndCollection(string memberName, ExtStringBuilder sb)
+    public override void EndCollection(string memberName, IndentedWriter writer)
     {
-        sb.AppendLine(".DecreaseIndent();")
-          .DecreaseIndent().AppendLine("}")
-          .DecreaseIndent().AppendLine("})")
-          .DecreaseIndent();
-
-        sb.Append(".Conditional(() => !").Append(memberName).AppendLine(".Any(),").IncreaseIndent()
-          .AppendLine(@"sb => sb.Append(""]""),")
-          .AppendLine("sb => sb.DecreaseIndent().EndLayer()")
-          .DecreaseIndent().AppendLine(")");
+        writer.NewLine();
+        writer.Write("writer.EndLayer();");
+        writer.NewLine();
+        writer.Write("writer.Indent--;");
+        writer.Indent--;
+        writer.NewLine();
+        writer.Write("}");
+        writer.Indent--;
+        writer.NewLine();
+        writer.Write("}");
     }
 
-    public override void WriteStringMember(string memberName, ExtStringBuilder sb)
+    public override void WriteStringMember(string memberName, IndentedWriter writer)
     {
-        sb.Append(".Conditional(() => ").Append(memberName).Append(@".IndexOf('\n') >= 0,").IncreaseIndent()
-          .Append(@"sb => sb.AppendLine(""|"").IncreaseIndent().AppendBlock(").Append(memberName).AppendLine(").DecreaseIndent(),")
-          .Append("sb => sb.AppendLine(").Append(memberName).Append(")")
-          .DecreaseIndent().AppendLine(")");
+        writer.NewLine();
+        writer.Write("if (");
+        writer.Write(memberName);
+        writer.Write(@".IndexOf('\n') >= 0)");
+        writer.NewLine();
+        writer.Write('{');
+        writer.Indent++;
+        writer.NewLine();
+        writer.Write("writer.Write('|');");
+        writer.NewLine();
+        writer.Write("writer.Indent++;");
+        writer.NewLine();
+        writer.Write("writer.NewLine();");
+        writer.NewLine();
+        writer.Write("writer.WriteBlock(");
+        writer.Write(memberName);
+        writer.Write(");");
+        writer.NewLine();
+        writer.Write("writer.Indent--;");
+        writer.Indent--;
+        writer.NewLine();
+        writer.Write('}');
+        writer.NewLine();
+        writer.Write("else");
+        writer.NewLine();
+        writer.Write('{');
+        writer.Indent++;
+        writer.NewLine();
+        writer.Write("writer.Write(");
+        writer.Write(memberName);
+        writer.Write(");");
+        writer.NewLine();
+        writer.Write("writer.NewLine();");
+        writer.Indent--;
+        writer.Write('}');
     }
 
-    public override void WriteValueMember(string memberName, ExtStringBuilder sb)
+    public override void WriteValueMember(string memberName, IndentedWriter writer)
     {
-        sb.Append(".Append(").Append(memberName).AppendLine(").AppendLine(string.Empty)");
+        writer.NewLine();
+        writer.Write("writer.Write(");
+        writer.Write(memberName);
+        writer.Write(");");
+        writer.NewLine();
+        writer.Write("writer.NewLine();");
     }
 
     private string FormatMemberName(string name) =>

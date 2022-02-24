@@ -6,32 +6,34 @@ internal interface ISerializer
 {
     bool SkipNullValues { get; }
 
-    void Usings(ExtStringBuilder sb, SerializeType typeInfo);
+    void Strings(IndentedWriter writer);
 
-    void StartElementFunc(SerializationContext context, SerializeType typeInfo, ExtStringBuilder sb);
-    void EndElementFunc(SerializationContext context, SerializeType typeInfo, ExtStringBuilder sb);
+    void Usings(SerializeType typeInfo, IndentedWriter writer);
 
-    void StartCode(ExtStringBuilder sb);
-    void EndCode(ExtStringBuilder sb);
+    void StartElementFunc(SerializationContext context, SerializeType typeInfo, IndentedWriter writer);
+    void EndElementFunc(SerializationContext context, SerializeType typeInfo, IndentedWriter writer);
 
-    void StartDocument(SerializeType typeInfo, ExtStringBuilder sb);
-    void EndDocument(SerializeType typeInfo, ExtStringBuilder sb);
+    void StartCode(IndentedWriter writer);
+    void EndCode(IndentedWriter writer);
 
-    void StartRootElement(SerializeType typeInfo, ExtStringBuilder sb);
-    void EndRootElement(SerializeType typeInfo, ExtStringBuilder sb);
+    void StartDocument(SerializeType typeInfo, IndentedWriter writer);
+    void EndDocument(SerializeType typeInfo, IndentedWriter writer);
 
-    void StartMember(SerializeMember member, bool firstMember, ExtStringBuilder sb);
-    void EndMember(SerializeMember member, bool lastMember, ExtStringBuilder sb);
+    void StartRootElement(SerializeType typeInfo, IndentedWriter writer);
+    void EndRootElement(SerializeType typeInfo, IndentedWriter writer);
 
-    string StartCollection(string typeName, string memberName, ExtStringBuilder sb);
-    void EndCollection(string memberName, ExtStringBuilder sb);
+    void StartMember(SerializeMember member, bool firstMember, IndentedWriter writer);
+    void EndMember(SerializeMember member, bool lastMember, IndentedWriter writer);
 
-    void WriteValueMember(string memberName, ExtStringBuilder sb);
-    void WriteStringMember(string memberName, ExtStringBuilder sb);
-    void WriteSerializedMember(string memberName, SerializeType serializedType, ExtStringBuilder sb);
+    string StartCollection(string typeName, string memberName, bool isArray, IndentedWriter writer);
+    void EndCollection(string memberName, IndentedWriter writer);
 
-    void StartNotDefaultCondition(string memberName, ExtStringBuilder sb);
-    void EndNotDefaultCondition(string memberName, ExtStringBuilder sb);
-    void StartMemberNullCheck(string memberName, ExtStringBuilder sb);
-    void EndMemberNullCheck(string memberName, ExtStringBuilder sb);
+    void WriteValueMember(string memberName, IndentedWriter writer);
+    void WriteStringMember(string memberName, IndentedWriter writer);
+    void WriteSerializedMember(string memberName, SerializeType serializedType, IndentedWriter writer);
+
+    void StartNotDefaultCondition(string memberName, IndentedWriter writer);
+    void EndNotDefaultCondition(string memberName, bool lastMember, IndentedWriter writer);
+    void StartMemberNullCheck(string memberName, IndentedWriter writer);
+    void EndMemberNullCheck(string memberName, IndentedWriter writer);
 }

@@ -9,31 +9,65 @@ internal static class ContextAugmentator
 {
     public static void Augment(SerializationContext serializationContext, GeneratorExecutionContext context)
     {
-        ExtStringBuilder sb = new();
+        IndentedWriter sb = new();
 
-        sb.AppendLine("using SerializIt;")
-          .Append("using ").Append(serializationContext.SerializerNamespace).AppendLine(";")
-          .Append("namespace ").Append(serializationContext.ContextNamespace).AppendLine(" {")
-          .IncreaseIndent()
-          .Append(serializationContext.Accessability).Append(" partial class ").Append(serializationContext.ClassName).AppendLine(" {")
-          .IncreaseIndent();
+        sb.Write("using SerializIt;");
+        sb.NewLine();
+        sb.Write("using ");
+        sb.Write(serializationContext.SerializerNamespace);
+        sb.Write(';');
+        sb.NewLine();
+        sb.Write("namespace ");
+        sb.Write(serializationContext.ContextNamespace);
+        sb.NewLine();
+        sb.Write('{');
+        sb.Indent++;
+        sb.NewLine();
+        sb.Write(serializationContext.Accessability);
+        sb.Write(" partial class ");
+        sb.Write(serializationContext.ClassName);
+        sb.NewLine();
+        sb.Write('{');
+        sb.Indent++;
+        sb.NewLine();
 
         foreach(var typeInfo in serializationContext.SerializeTypes)
         {
-            sb.AppendLine("/// <summary>")
-              .Append(@"/// Gets an instance of <see cref=""").Append(typeInfo.SerializerName).Append(@"""> to serialize a <see cref=""").Append(typeInfo.TypeName).AppendLine(@""">.")
-              .AppendLine("/// </summary>")
-              .Append("public ").Append(typeInfo.SerializerName).Append(' ').Append(typeInfo.TypeName)
-              .Append(" => _").Append(typeInfo.SerializerName).AppendLine(" ??= new(this);")
-              .Append("private ").Append(typeInfo.SerializerName).Append(" _").Append(typeInfo.SerializerName).AppendLine(";")
-              .AppendLine("");
+            sb.Write("/// <summary>");
+            sb.NewLine();
+            sb.Write(@"/// Gets an instance of <see cref=""");
+            sb.Write(typeInfo.SerializerName);
+            sb.Write(@"""> to serialize a <see cref=""");
+            sb.Write(typeInfo.TypeName);
+            sb.Write(@""">.");
+            sb.NewLine();
+            sb.Write("/// </summary>");
+            sb.NewLine();
+            sb.Write("public ");
+            sb.Write(typeInfo.SerializerName);
+            sb.Write(' ');
+            sb.Write(typeInfo.TypeName);
+            sb.Write(" => _");
+            sb.Write(typeInfo.SerializerName);
+            sb.Write(" ??= new(this);");
+            sb.NewLine();
+            sb.Write("private ");
+            sb.Write(typeInfo.SerializerName);
+            sb.Write(" _");
+            sb.Write(typeInfo.SerializerName);
+            sb.Write(';');
+            sb.NewLine();
+            sb.NewLine();
         }
 
-        sb.DecreaseIndent()
-          .AppendLine("}")
-          .DecreaseIndent()
-          .AppendLine("}");
+        sb.Indent--;
+        sb.Write('}');
+        sb.NewLine();
+        sb.Indent--;
+        sb.Write('}');
+        sb.NewLine();
 
-        context.AddSource($"{serializationContext.ContextNamespace}.{serializationContext.ClassName}.generated.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
+        var source = sb.ToString();
+        context.AddSource($"{serializationContext.ContextNamespace}.{serializationContext.ClassName}.generated.cs", SourceText.From(source, Encoding.UTF8));
     }
 }

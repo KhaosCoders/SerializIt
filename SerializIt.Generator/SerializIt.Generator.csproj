@@ -10,7 +10,8 @@
 	  <StaticTemplates Include="Templates/*.cs" />
 	  <Compile Remove="@(StaticTemplates)" />
 	  <EmbeddedResource Include="@(StaticTemplates)" />
-	  <EmbeddedResource Include="ExtStringBuilder.cs" />
+	  <EmbeddedResource Include="IndentedWriter.cs" />
+	  <EmbeddedResource Include="Serializers/ISerializerOptions.cs" />
 	  <EmbeddedResource Include="Serializers/JsonSerializerOptions.cs" />
 	  <EmbeddedResource Include="Serializers/YamlSerializerOptions.cs" />
 	  <EmbeddedResource Include="Serializers/XmlSerializerOptions.cs" />
