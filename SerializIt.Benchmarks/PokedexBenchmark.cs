@@ -1,9 +1,10 @@
 ﻿using BenchmarkDotNet.Attributes;
+using SerializIt.Benchmarks.Contexts;
 using SerializIt.Benchmarks.Model;
-using SerializIt.Benchmarks.SerializIt;
 using SerializIt.Benchmarks.SystemText2;
 using SerializIt.Benchmarks.SystemText3;
 using System.Text.Json;
+using Tinyhand;
 
 namespace SerializIt.Benchmarks;
 
@@ -23,17 +24,21 @@ public class PokedexBenchmark
     }
 
     [Benchmark]
-    public string SerializItJson()
+    public string TinyhandJson()
     {
-        PokedexJsonContext ctx = new();
-        return ctx.Pokedex.SerializeDocument(_pokedex);
+        return TinyhandSerializer.SerializeToString(_pokedex);
     }
 
     [Benchmark]
-    public string SerializItFormattedJson()
+    public string SystemTextJsonSG()
     {
-        PokedexFormattedJsonContext ctx = new();
-        return ctx.Pokedex.SerializeDocument(_pokedex);
+        return JsonSerializer.Serialize(_pokedex, PokedexJsonContext2.Default.Pokedex);
+    }
+
+    [Benchmark]
+    public string SystemTextFormattedJsonSG()
+    {
+        return JsonSerializer.Serialize(_pokedex, PokedexJsonContext3.Default.Pokedex);
     }
 
     /* [Benchmark]
@@ -57,14 +62,17 @@ public class PokedexBenchmark
      }*/
 
     [Benchmark]
-    public string SystemTextJsonSG()
+    public string SerializItJson()
     {
-        return JsonSerializer.Serialize(_pokedex, PokedexJsonContext2.Default.Pokedex);
+        PokedexJsonContext ctx = new();
+        return ctx.Pokedex.SerializeDocument(_pokedex);
     }
+
     [Benchmark]
-    public string SystemTextFormattedJsonSG()
+    public string SerializItFormattedJson()
     {
-        return JsonSerializer.Serialize(_pokedex, PokedexJsonContext3.Default.Pokedex);
+        PokedexFormattedJsonContext ctx = new();
+        return ctx.Pokedex.SerializeDocument(_pokedex);
     }
 
 }

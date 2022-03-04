@@ -1,6 +1,7 @@
-﻿using SerializIt.Benchmarks.Model;
+﻿using SerializIt;
+using SerializIt.Benchmarks.Model;
 
-namespace SerializIt.Benchmarks.SerializIt;
+namespace SerializIt.Benchmarks.Contexts;
 
 [Serializer(ESerializers.Json, ns: "BenchmarkFormattedJson")]
 [JsonOptions(prettyPrint: true)]
