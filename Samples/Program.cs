@@ -7,6 +7,10 @@ Parser.Default.ParseArguments<Options>(args).WithParsed(Run);
 
 static void Run(Options o)
 {
+    if (o.Iterations < 1)
+    {
+        o.Iterations = 1;
+    }
     Console.WriteLine($"{o.Serializer} serialized object (x{o.Iterations}):");
 
     var root = new RootElement()
@@ -24,7 +28,7 @@ static void Run(Options o)
                     new Container()
                     {
                         Id = 3,
-                        Info = new() { Info1 = "test3", Info2 = 300, Infos = new string[]{ "A", "B", "C" } }
+                        Info = new() { Info1 = "test 3", Info2 = 300, Infos = new string[]{ "A", "B", "C" } }
                     }
                 }
             },
