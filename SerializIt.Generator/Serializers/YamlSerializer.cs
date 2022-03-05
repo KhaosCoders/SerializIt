@@ -108,21 +108,24 @@ internal class YamlSerializer : BaseSerializer
 
     public override string StartCollection(string typeName, string memberName, bool isArray, IndentedWriter writer)
     {
+        writer.NewLine();
         writer.Write("if (");
         writer.Write(memberName);
         if (isArray)
         {
-            writer.Write(".Length > 0)");
+            writer.Write(".Length == 0)");
         }
         else
         {
-            writer.Write(".Count > 0)");
+            writer.Write(".Count == 0)");
         }
         writer.NewLine();
         writer.Write('{');
         writer.Indent++;
         writer.NewLine();
         writer.Write(@"writer.Write(""[ ]"");");
+        writer.NewLine();
+        writer.Write("writer.NewLine();");
         writer.Indent--;
         writer.NewLine();
         writer.Write('}');
@@ -164,8 +167,12 @@ internal class YamlSerializer : BaseSerializer
         writer.Indent--;
         writer.NewLine();
         writer.Write("}");
-        writer.Indent--;
         writer.NewLine();
+        writer.Write("writer.Indent--;");
+        writer.NewLine();
+        writer.Write("writer.NewLineIfNeeded();");
+        writer.NewLine();
+        writer.Indent--;
         writer.Write("}");
     }
 
@@ -205,6 +212,7 @@ internal class YamlSerializer : BaseSerializer
         writer.NewLine();
         writer.Write("writer.NewLine();");
         writer.Indent--;
+        writer.NewLine();
         writer.Write('}');
     }
 

@@ -65,6 +65,17 @@ internal class XmlSerializer : BaseSerializer
 
     public override void StartMember(SerializeMember member, bool firstMember, IndentedWriter writer)
     {
+        if (member.MemberType.IsReferenceType)
+        {
+            writer.NewLine();
+            writer.Write("if (item.");
+            writer.Write(member.MemberName);
+            writer.Write(" != null)");
+            writer.NewLine();
+            writer.Write('{');
+            writer.Indent++;
+        }
+
         writer.NewLine();
         writer.Write("writer.IsLayerSet = true;");
         writer.NewLine();
@@ -96,6 +107,13 @@ internal class XmlSerializer : BaseSerializer
         {
             writer.NewLine();
             writer.Write("writer.NewLine();");
+        }
+
+        if (member.MemberType.IsReferenceType)
+        {
+            writer.Indent--;
+            writer.NewLine();
+            writer.Write('}');
         }
     }
 
