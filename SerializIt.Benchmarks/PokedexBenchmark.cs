@@ -4,7 +4,10 @@ using SerializIt.Benchmarks.Model;
 using SerializIt.Benchmarks.SystemText2;
 using SerializIt.Benchmarks.SystemText3;
 using System.Text.Json;
+using System.Xml.Serialization;
 using Tinyhand;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace SerializIt.Benchmarks;
 
@@ -12,6 +15,8 @@ namespace SerializIt.Benchmarks;
 public class PokedexBenchmark
 {
     private readonly Pokedex _pokedex;
+    private ISerializer _yamlSerializer;
+    private XmlSerializer _xmlSerializer;
 
     public PokedexBenchmark()
     {
@@ -21,6 +26,12 @@ public class PokedexBenchmark
             PropertyNameCaseInsensitive = true
         };
         _pokedex = JsonSerializer.Deserialize<Pokedex>(data, options) ?? new();
+
+        _yamlSerializer = new SerializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+
+        _xmlSerializer = new XmlSerializer(typeof(Pokedex));
     }
 
     [Benchmark]
@@ -64,7 +75,7 @@ public class PokedexBenchmark
     [Benchmark]
     public string SerializItJson()
     {
-        PokedexJsonContext ctx = new();
+        PokedexYamlContext ctx = new();
         return ctx.Pokedex.SerializeDocument(_pokedex);
     }
 
@@ -72,6 +83,35 @@ public class PokedexBenchmark
     public string SerializItFormattedJson()
     {
         PokedexFormattedJsonContext ctx = new();
+        return ctx.Pokedex.SerializeDocument(_pokedex);
+    }
+
+    [Benchmark]
+    public string YamlDotNet()
+    {
+        return _yamlSerializer.Serialize(_pokedex);
+    }
+
+    [Benchmark]
+    public string SerializItYaml()
+    {
+        PokedexYamlContext ctx = new();
+        return ctx.Pokedex.SerializeDocument(_pokedex);
+    }
+
+    [Benchmark]
+    public string XmlSerializer()
+    {
+        var writer = new StringWriter();
+        _xmlSerializer.Serialize(writer, _pokedex);
+        writer.Close();
+        return writer.ToString();
+    }
+
+    [Benchmark]
+    public string SerializItXml()
+    {
+        PokedexXmlContext ctx = new();
         return ctx.Pokedex.SerializeDocument(_pokedex);
     }
 

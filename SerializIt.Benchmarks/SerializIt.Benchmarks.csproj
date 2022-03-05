@@ -10,6 +10,7 @@
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
 		<PackageReference Include="Tinyhand" Version="0.28.4" />
+		<PackageReference Include="YamlDotNet" Version="11.2.1" />
 	</ItemGroup>
 
 	<ItemGroup>
