@@ -5,6 +5,11 @@
 # SerializIt
 A super fast serializer using Roslyn SourceGenerators instead of reflection
 
+![Build](https://github.com/KhaosCoders/SerializIt/actions/workflows/build.yml/badge.svg)
+![Test](https://github.com/KhaosCoders/SerializIt/actions/workflows/test.yml/badge.svg)
+[![NuGet](https://img.shields.io/nuget/v/SerializIt.svg)](https://www.nuget.org/packages/SerializIt/)
+<!-- [![Coverage](https://codecov.io/gh/KhaosCoders/SerializIt/branch/master/graph/badge.svg?token=xxx)](https://codecov.io/gh/KhaosCoders/SerializIt) -->
+
 **!THIS IS WORK IN PROGRESS!**
 
 **Only supports serialization, no deserialization!**
@@ -73,3 +78,4 @@ This serializer supports the following features:
 # Support this <3
 If you like my work, please support this project!  
 Donate via [PayPal](https://www.paypal.com/donate?hosted_button_id=37PBGZPHXY8EC)
+or become a [Sponsor](https://github.com/sponsors/Khaos66)
