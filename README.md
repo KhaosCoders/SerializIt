@@ -1,3 +1,7 @@
+<p align="center">
+<img src ="https://raw.githubusercontent.com/KhaosCoders/SerializIt/master/Art/Icon.png" width=200 />
+</p>
+
 # SerializIt
 A super fast serializer using Roslyn SourceGenerators instead of reflection
 
