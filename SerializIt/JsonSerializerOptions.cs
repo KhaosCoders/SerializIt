@@ -1,30 +1,30 @@
-﻿using System;
-using System.Reflection.Metadata;
+﻿namespace SerializIt;
 
-namespace SerializIt;
-
-internal struct JsonSerializerOptions : ISerializerOptions
+public struct JsonSerializerOptions : ISerializerOptions
 {
     public bool PrettyPrint { get; set; }
     public bool UseSingleQuotes { get; set; }
-    public string IndentChars { get; set; }
+    public string? IndentChars { get; set; }
     public bool SkipNullValues { get; set; }
     public char Quotes => UseSingleQuotes ? '\'' : '"';
     public bool UseParallel { get; set; }
 }
 
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-internal class JsonOptionsAttribute : Attribute
+public class JsonOptionsAttribute : OptionsAttribute
 {
-    public JsonSerializerOptions Options { get; set; }
+    public JsonSerializerOptions? JsonOptions
+    {
+        get => (JsonSerializerOptions) Options;
+        set => Options = value;
+    }
 
     public JsonOptionsAttribute(bool prettyPrint = false,
                                 bool useSingeQuotes = false,
-                                string indentChars = default,
+                                string? indentChars = default,
                                 bool skipNullValues = true,
                                 bool parallel = false)
     {
-        Options = new JsonSerializerOptions()
+        JsonOptions = new JsonSerializerOptions()
         {
             PrettyPrint = prettyPrint,
             UseSingleQuotes = useSingeQuotes,

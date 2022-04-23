@@ -1,10 +1,13 @@
 ﻿using SerializIt.Generator.Model;
+using System;
 using System.Collections.Generic;
 
 namespace SerializIt.Generator.Serializers;
 
 internal abstract class BaseSerializer : ISerializer
 {
+    public ISerializerOptions? Options { get; set; }
+
     public virtual bool SkipNullValues => true;
 
     private readonly Dictionary<string, string> _strings = new();
@@ -31,7 +34,8 @@ internal abstract class BaseSerializer : ISerializer
         writer.Write("using SerializIt;");
         writer.NewLine();
         writer.Write("using ");
-        writer.Write(typeInfo.Namespace);
+        writer.Write(typeInfo?.Namespace
+                     ?? throw new ArgumentException($"{nameof(typeInfo.Namespace)} can't be null"));
         writer.Write(";");
         writer.NewLine();
     }
@@ -42,9 +46,11 @@ internal abstract class BaseSerializer : ISerializer
         writer.Write("[ThreadStatic] static IndentedWriter _writer;");
         writer.NewLine();
         writer.Write("internal void SerializeElement(");
-        writer.Write(typeInfo.Namespace);
+        writer.Write(typeInfo?.Namespace
+                     ?? throw new ArgumentException($"{nameof(typeInfo.Namespace)} can't be null"));
         writer.Write('.');
-        writer.Write(typeInfo.TypeName);
+        writer.Write(typeInfo?.TypeName
+                     ?? throw new ArgumentException($"{nameof(typeInfo.TypeName)} can't be null"));
         writer.Write(" item, IndentedWriter writer)");
         writer.NewLine();
         writer.Write('{');
@@ -105,27 +111,29 @@ internal abstract class BaseSerializer : ISerializer
         writer.Write('}');
     }
 
-    public virtual void WriteValueMember(string memberName, IndentedWriter writer)
+    public virtual void WriteValueMember(string? memberName, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write("writer.Write(");
-        writer.Write(memberName);
+        writer.Write(memberName
+                     ?? throw new ArgumentException($"{nameof(memberName)} can't be null"));
         writer.Write(");");
     }
 
-    public virtual void WriteStringMember(string memberName, IndentedWriter writer)
+    public virtual void WriteStringMember(string? memberName, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write(@"writer.Write('""')");
         writer.NewLine();
         writer.Write("writer.Write(");
-        writer.Write(memberName);
+        writer.Write(memberName
+                     ?? throw new ArgumentException($"{nameof(memberName)} can't be null"));
         writer.Write(");");
         writer.NewLine();
         writer.Write(@"writer.Write('""');");
     }
 
-    public virtual void WriteSerializedMember(string memberName, SerializeType serializedType, IndentedWriter writer)
+    public virtual void WriteSerializedMember(string? memberName, SerializeType? serializedType, IndentedWriter writer)
     {
         writer.NewLine();
         if (memberName == null || serializedType == null)
@@ -136,7 +144,8 @@ internal abstract class BaseSerializer : ISerializer
         }
 
         writer.Write("_context.");
-        writer.Write(serializedType.TypeName);
+        writer.Write(serializedType?.TypeName
+                     ?? throw new ArgumentException($"{nameof(serializedType.TypeName)} can't be null"));
         writer.Write(".SerializeElement(");
         writer.Write(memberName);
         writer.Write(", writer);");
@@ -151,8 +160,8 @@ internal abstract class BaseSerializer : ISerializer
     public abstract void StartMember(SerializeMember member, bool firstMember, IndentedWriter writer);
     public abstract void EndMember(SerializeMember member, bool lastMember, IndentedWriter writer);
 
-    public abstract string StartCollection(string typeName, string memberName, bool isArray, IndentedWriter writer);
-    public abstract void EndCollection(string memberName, IndentedWriter writer);
+    public abstract string StartCollection(string typeName, string? memberName, bool isArray, IndentedWriter writer);
+    public abstract void EndCollection(string? memberName, IndentedWriter writer);
 
     public void StartMemberNullCheck(string memberName, IndentedWriter sb)
     {

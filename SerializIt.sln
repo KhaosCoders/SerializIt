@@ -9,7 +9,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{7738
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples", "Samples\Samples.csproj", "{A012F9DD-4791-4A6B-BB22-9579AE91BF84}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerializIt.Benchmarks", "SerializIt.Benchmarks\SerializIt.Benchmarks.csproj", "{74A6ABA4-8726-48BF-A72D-DA1D58BAF46F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerializIt.Benchmarks", "SerializIt.Benchmarks\SerializIt.Benchmarks.csproj", "{74A6ABA4-8726-48BF-A72D-DA1D58BAF46F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerializIt", "SerializIt\SerializIt.csproj", "{19C051FA-D67D-47DE-85D9-007B52D52200}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +31,10 @@ Global
 		{74A6ABA4-8726-48BF-A72D-DA1D58BAF46F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74A6ABA4-8726-48BF-A72D-DA1D58BAF46F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74A6ABA4-8726-48BF-A72D-DA1D58BAF46F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19C051FA-D67D-47DE-85D9-007B52D52200}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19C051FA-D67D-47DE-85D9-007B52D52200}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19C051FA-D67D-47DE-85D9-007B52D52200}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19C051FA-D67D-47DE-85D9-007B52D52200}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

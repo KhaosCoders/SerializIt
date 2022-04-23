@@ -7,6 +7,8 @@ namespace SerializIt.Benchmarks.Model
     {
         [Key(0)]
         public Pokemon[] Pokemon { get; set; }
+        //[Key(1)]
+        //public int test2 { get; set; }
     }
 
     [TinyhandObject]

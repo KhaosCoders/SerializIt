@@ -2,8 +2,10 @@
 
 namespace SerializIt;
 
-internal interface ISerializer
+public interface ISerializer
 {
+    ISerializerOptions? Options { get; set; }
+
     bool SkipNullValues { get; }
 
     void Strings(IndentedWriter writer);
@@ -25,15 +27,16 @@ internal interface ISerializer
     void StartMember(SerializeMember member, bool firstMember, IndentedWriter writer);
     void EndMember(SerializeMember member, bool lastMember, IndentedWriter writer);
 
-    string StartCollection(string typeName, string memberName, bool isArray, IndentedWriter writer);
-    void EndCollection(string memberName, IndentedWriter writer);
+    string StartCollection(string typeName, string? memberName, bool isArray, IndentedWriter writer);
+    void EndCollection(string? memberName, IndentedWriter writer);
 
-    void WriteValueMember(string memberName, IndentedWriter writer);
-    void WriteStringMember(string memberName, IndentedWriter writer);
-    void WriteSerializedMember(string memberName, SerializeType serializedType, IndentedWriter writer);
+    void WriteValueMember(string? memberName, IndentedWriter writer);
+    void WriteStringMember(string? memberName, IndentedWriter writer);
+    void WriteSerializedMember(string? memberName, SerializeType serializedType, IndentedWriter writer);
 
     void StartNotDefaultCondition(string memberName, IndentedWriter writer);
     void EndNotDefaultCondition(string memberName, bool lastMember, IndentedWriter writer);
     void StartMemberNullCheck(string memberName, IndentedWriter writer);
     void EndMemberNullCheck(string memberName, IndentedWriter writer);
 }
+

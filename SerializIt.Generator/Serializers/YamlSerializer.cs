@@ -1,4 +1,5 @@
-﻿using SerializIt.Generator.Model;
+﻿using System;
+using SerializIt.Generator.Model;
 
 namespace SerializIt.Generator.Serializers;
 
@@ -6,25 +7,29 @@ namespace SerializIt.Generator.Serializers;
 [SerializerOptions(typeof(YamlOptionsAttribute))]
 internal class YamlSerializer : BaseSerializer
 {
-    public YamlSerializerOptions Options { get; set; }
+    public YamlSerializerOptions? YamlOptions
+    {
+        get => Options is YamlSerializerOptions o ? o : null;
+        set => Options = value;
+    }
 
     public override bool SkipNullValues => false;
 
     public override void StartCode(IndentedWriter writer)
     {
         base.StartCode(writer);
-        if (Options.IndentChars != default)
+        if (YamlOptions?.IndentChars is string chars)
         {
             writer.NewLine();
             writer.Write(@"writer.IndentChars = """);
-            writer.Write(Options.IndentChars);
+            writer.Write(chars);
             writer.Write(@""";");
         }
     }
 
     public override void StartDocument(SerializeType typeInfo, IndentedWriter writer)
     {
-        if (Options.AddPreamble)
+        if (YamlOptions?.AddPreamble == true)
         {
             writer.NewLine();
             writer.Write(@"writer.Write(""---"");");
@@ -35,7 +40,7 @@ internal class YamlSerializer : BaseSerializer
 
     public override void EndDocument(SerializeType typeInfo, IndentedWriter writer)
     {
-        if (Options.AddPostamble)
+        if (YamlOptions?.AddPostamble == true)
         {
             writer.NewLine();
             writer.Write("writer.NoIndent();");
@@ -70,7 +75,7 @@ internal class YamlSerializer : BaseSerializer
 
     public override void EndMember(SerializeMember member, bool lastMember, IndentedWriter writer) { }
 
-    public override void WriteSerializedMember(string memberName, SerializeType serializedType, IndentedWriter writer)
+    public override void WriteSerializedMember(string? memberName, SerializeType? serializedType, IndentedWriter writer)
     {
         var isMember = memberName != null && serializedType != null;
         if (isMember)
@@ -106,11 +111,12 @@ internal class YamlSerializer : BaseSerializer
         }
     }
 
-    public override string StartCollection(string typeName, string memberName, bool isArray, IndentedWriter writer)
+    public override string StartCollection(string typeName, string? memberName, bool isArray, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write("if (");
-        writer.Write(memberName);
+        writer.Write(memberName
+                     ?? throw new ArgumentException($"{nameof(memberName)} can't be null"));
         if (isArray)
         {
             writer.Write(".Length == 0)");
@@ -158,7 +164,7 @@ internal class YamlSerializer : BaseSerializer
         return "x";
     }
 
-    public override void EndCollection(string memberName, IndentedWriter writer)
+    public override void EndCollection(string? memberName, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write("writer.EndLayer();");
@@ -176,11 +182,12 @@ internal class YamlSerializer : BaseSerializer
         writer.Write("}");
     }
 
-    public override void WriteStringMember(string memberName, IndentedWriter writer)
+    public override void WriteStringMember(string? memberName, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write("if (");
-        writer.Write(memberName);
+        writer.Write(memberName
+                     ?? throw new ArgumentException($"{nameof(memberName)} can't be null"));
         writer.Write(@".IndexOf('\n') >= 0)");
         writer.NewLine();
         writer.Write('{');
@@ -216,11 +223,12 @@ internal class YamlSerializer : BaseSerializer
         writer.Write('}');
     }
 
-    public override void WriteValueMember(string memberName, IndentedWriter writer)
+    public override void WriteValueMember(string? memberName, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write("writer.Write(");
-        writer.Write(memberName);
+        writer.Write(memberName
+                     ?? throw new ArgumentException($"{nameof(memberName)} can't be null"));
         writer.Write(");");
         writer.NewLine();
         writer.Write("writer.NewLine();");

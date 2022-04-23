@@ -1,11 +1,12 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using SerializIt.CodeAnalysis;
 
 namespace SerializIt.Generator.Model;
-internal record SerializeMember
+
+public record SerializeMember
 {
     public string MemberName { get; set; }
 
-    public ITypeSymbol MemberType { get; set; }
+    public TypeSymbol MemberType { get; set; }
 
     public int Order { get; set; }
 
@@ -13,7 +14,7 @@ internal record SerializeMember
 
     public bool SkipIfDefault { get; set; }
 
-    public SerializeMember(string name, ITypeSymbol type)
+    public SerializeMember(string name, TypeSymbol type)
     {
         MemberName = name;
         MemberType = type;

@@ -6,7 +6,7 @@ namespace SerializIt.Generator.Helpers;
 
 internal static class SymbolHelper
 {
-    public static IEnumerable<ISymbol> GetAllMembers(this INamedTypeSymbol symbol, Accessibility accessibility, SymbolKind kind)
+    public static IEnumerable<ISymbol> GetAllMembers(this INamedTypeSymbol? symbol, Accessibility accessibility, SymbolKind kind)
     {
         if (symbol == null)
         {
@@ -27,23 +27,19 @@ internal static class SymbolHelper
         }
     }
 
-    public static string GetNamespaceName(INamespaceSymbol symbol)
+    public static string? GetNamespaceName(INamespaceSymbol? symbol)
     {
         if (string.IsNullOrEmpty(symbol?.Name))
         {
             return null;
         }
 
-        string ns = null;
-        if (symbol.ContainingNamespace is INamespaceSymbol parentNS)
+        string? ns = null;
+        if (symbol?.ContainingNamespace is INamespaceSymbol parentNs)
         {
-            ns = GetNamespaceName(parentNS);
+            ns = GetNamespaceName(parentNs);
         }
-        if (ns != null)
-        {
-            return $"{ns}.{symbol.Name}";
-        }
-        return symbol.Name;
+        return ns != null ? $"{ns}.{symbol?.Name}" : symbol?.Name;
     }
 
     public static string GetAccessor(Accessibility accessibility) =>

@@ -1,26 +1,48 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFramework>netstandard2.0</TargetFramework>
-	<LangVersion>preview</LangVersion>
-	<IsRoslynComponent>true</IsRoslynComponent>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackBuildOutputs</TargetsForTfmSpecificContentInPackage>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants)TRACE;LOGS</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants)TRACE;LOGS</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>SerializIt.Generator</PackageId>
+    <Authors>KhaosCoders</Authors>
+    <Product>SerializIt.Generator</Product>
+    <Description>Source generator for SerializIt</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/KhaosCoders/SerializIt</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/KhaosCoders/SerializIt</RepositoryUrl>
+  </PropertyGroup>
+
+  <Target Name="PackBuildOutputs" DependsOnTargets="SatelliteDllsProjectOutputGroup;DebugSymbolsProjectOutputGroup">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(TargetDir)\*.dll" PackagePath="analyzers\dotnet\cs" />
+      <TfmSpecificPackageFile Include="@(SatelliteDllsProjectOutputGroupOutput->'%(FinalOutputPath)')" PackagePath="analyzers\dotnet\cs\%(SatelliteDllsProjectOutputGroupOutput.Culture)\" />
+    </ItemGroup>
+  </Target>
+
   <ItemGroup>
-	  <StaticTemplates Include="Templates/*.cs" />
-	  <Compile Remove="@(StaticTemplates)" />
-	  <EmbeddedResource Include="@(StaticTemplates)" />
-	  <EmbeddedResource Include="IndentedWriter.cs" />
-	  <EmbeddedResource Include="Serializers/ISerializerOptions.cs" />
-	  <EmbeddedResource Include="Serializers/JsonSerializerOptions.cs" />
-	  <EmbeddedResource Include="Serializers/YamlSerializerOptions.cs" />
-	  <EmbeddedResource Include="Serializers/XmlSerializerOptions.cs" />
-	  <Compile Include="Templates/ESerializers.cs" />
-	  <Compile Include="Templates/SerializerAttribute.cs" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" />
   </ItemGroup>
+
   <ItemGroup>
-	<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
-	<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" />
+    <ProjectReference Include="..\SerializIt\SerializIt.csproj" />
   </ItemGroup>
 
 </Project>

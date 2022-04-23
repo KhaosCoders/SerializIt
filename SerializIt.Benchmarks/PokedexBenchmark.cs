@@ -15,7 +15,7 @@ namespace SerializIt.Benchmarks;
 public class PokedexBenchmark
 {
     private readonly Pokedex _pokedex;
-    private ISerializer _yamlSerializer;
+    private YamlDotNet.Serialization.ISerializer _yamlSerializer;
     private XmlSerializer _xmlSerializer;
 
     public PokedexBenchmark()

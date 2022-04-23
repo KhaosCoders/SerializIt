@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace SerializIt;
@@ -11,68 +9,68 @@ public class IndentedWriter
 
     public string IndentChars
     {
-        get => _indentChars;
+        get => indentChars;
         set
         {
             if (IndentChars == value)
             {
                 return;
             }
-            _indentChars = value;
-            _indents.Clear();
+            indentChars = value;
+            indents.Clear();
 
             if (Indent <= 0)
             {
                 return;
             }
 
-            _sbIndent ??= new();
-            _sbIndent.Length = 0;
+            sbIndent ??= new();
+            sbIndent.Length = 0;
             for (var i = 1; i <= Indent; i++)
             {
-                _sbIndent.Append(_indentChars);
-                _indents.Add(_sbIndent.ToString());
+                sbIndent.Append(indentChars);
+                indents.Add(sbIndent.ToString());
             }
-            _sbIndent.Length = 0;
+            sbIndent.Length = 0;
         }
     }
 
     public int Indent
     {
-        get => _indent;
+        get => indent;
         set
         {
-            _indent = value > 0 ? value : 0;
-            if (_indent <= _indents.Count)
+            indent = value > 0 ? value : 0;
+            if (indent <= indents.Count)
             {
                 return;
             }
 
-            _sbIndent ??= new();
-            _sbIndent.Length=0;
-            if (_indents.Count > 0)
+            sbIndent ??= new();
+            sbIndent.Length = 0;
+            if (indents.Count > 0)
             {
-                _sbIndent.Append(_indents[_indents.Count - 1]);
+                sbIndent.Append(indents[indents.Count - 1]);
             }
 
-            for (var i = _indents.Count; i < _indent; i++)
+            for (var i = indents.Count; i < indent; i++)
             {
-                _sbIndent.Append(_indentChars);
-                _indents.Add(_sbIndent.ToString());
+                sbIndent.Append(indentChars);
+                indents.Add(sbIndent.ToString());
             }
-            _sbIndent.Length = 0;
+            sbIndent.Length = 0;
         }
     }
 
-    [ThreadStatic] private static StringBuilder _sbIndent;
+    [ThreadStatic] private static StringBuilder? sbIndent;
 
-    private readonly StringBuilder _sb = new();
-    private readonly Stack<bool> _layerFlags = new();
-    private bool _isNewLine;
-    private bool _needsNewLine;
-    private readonly List<string> _indents = new();
-    private string _indentChars = "\t";
-    private int _indent;
+    private readonly StringBuilder sb = new();
+    private readonly Stack<bool> layerFlags = new();
+    private bool isNewLine;
+    private bool needsNewLine;
+    private readonly List<string> indents = new();
+    private string indentChars = "\t";
+    private int indent;
 
     public IndentedWriter()
     {
@@ -82,15 +80,15 @@ public class IndentedWriter
     /// <inheritdoc cref="StringBuilder.ToString()" />
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override string ToString() =>
-        _sb.ToString();
+        sb.ToString();
 
     public void Clear()
     {
-        _sb.Length = 0;
-        _isNewLine = false;
-        _needsNewLine = false;
-        _indent = 0;
-        _layerFlags.Clear();
+        sb.Length = 0;
+        isNewLine = false;
+        needsNewLine = false;
+        indent = 0;
+        layerFlags.Clear();
         IsLayerSet = false;
     }
 
@@ -99,26 +97,26 @@ public class IndentedWriter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void NoIndent()
     {
-        _isNewLine = false;
+        isNewLine = false;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddIndent()
     {
-        if (_indent > 0)
+        if (indent > 0)
         {
-            _sb.Append(_indents[_indent - 1]);
+            sb.Append(indents[indent - 1]);
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteIndentation()
     {
-        if (_isNewLine && AutoIndentCode && _indent > 0)
+        if (isNewLine && AutoIndentCode && indent > 0)
         {
             this.AddIndent();
         }
-        _isNewLine = false;
+        isNewLine = false;
     }
 
     #endregion
@@ -127,107 +125,107 @@ public class IndentedWriter
 
     public void Write(string code)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(code);
+        sb.Append(code);
     }
 
     public void Write(char chr)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(chr);
+        sb.Append(chr);
     }
 
     public void Write(char[] chr)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(chr);
+        sb.Append(chr);
     }
 
     public void Write(byte num)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(num);
+        sb.Append(num);
     }
 
     public void Write(sbyte num)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(num);
+        sb.Append(num);
     }
 
     public void Write(short num)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(num);
+        sb.Append(num);
     }
 
     public void Write(int num)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(num);
+        sb.Append(num);
     }
 
     public void Write(long num)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(num);
+        sb.Append(num);
     }
 
     public void Write(float num)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(num);
+        sb.Append(num);
     }
 
     public void Write(double num)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(num);
+        sb.Append(num);
     }
 
     public void Write(decimal num)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(num);
+        sb.Append(num);
     }
 
     public void Write(object obj)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(obj);
+        sb.Append(obj);
     }
 
     public void Write(bool value)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(value);
+        sb.Append(value);
     }
 
     public void Write(uint num)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(num);
+        sb.Append(num);
     }
 
     public void Write(ulong num)
     {
-        _needsNewLine = true;
+        needsNewLine = true;
         WriteIndentation();
-        _sb.Append(num);
+        sb.Append(num);
     }
 
     #endregion
@@ -237,14 +235,14 @@ public class IndentedWriter
     public void NewLine()
     {
         WriteIndentation();
-        _sb.AppendLine();
-        _isNewLine = true;
-        _needsNewLine = false;
+        sb.AppendLine();
+        isNewLine = true;
+        needsNewLine = false;
     }
 
     public void NewLineIfNeeded()
     {
-        if (_needsNewLine)
+        if (needsNewLine)
         {
             NewLine();
         }
@@ -297,13 +295,13 @@ public class IndentedWriter
 
     public void StartLayer()
     {
-        _layerFlags.Push(IsLayerSet);
+        layerFlags.Push(IsLayerSet);
         IsLayerSet = false;
     }
 
     public void EndLayer()
     {
-        IsLayerSet = _layerFlags.Pop();
+        IsLayerSet = layerFlags.Pop();
     }
 
     #endregion

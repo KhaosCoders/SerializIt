@@ -1,23 +1,31 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace SerializIt.Generator.Helpers
 {
     internal static class CodeActivator
     {
-        static List<SyntaxTree> _staticCodes = new();
+        static CodeActivator()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+        }
 
-        public static bool IsInitialized => _staticCodes.Count > 0;
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            var asmName = new AssemblyName(args.Name);
+            if (asmName.Name.Equals("SerializIt"))
+            {
+                return typeof(ESerializers).Assembly;
+            }
+            return null;
+        }
 
-        public static void AddStaticCode(params string[] staticCodes) =>
-            Array.ForEach(staticCodes, code => _staticCodes.Add(CSharpSyntaxTree.ParseText(code)));
-
-        public static Attribute LoadAttribute(string attrCode)
+        public static Attribute? LoadAttribute(string attrCode)
         {
             if (string.IsNullOrWhiteSpace(attrCode))
             {
@@ -30,16 +38,12 @@ namespace SerializIt.Generator.Helpers
             }
 
             var objWithAttr = LoadClass($"namespace Generated {{ {attrCode} public class Dummy {{ }} }}");
-            if (objWithAttr == null)
-            {
-                return null;
-            }
 
-            var objType = objWithAttr.GetType();
-            return objType.GetCustomAttributes(false)[0] as Attribute;
+            var objType = objWithAttr?.GetType();
+            return objType?.GetCustomAttributes(false)[0] as Attribute;
         }
 
-        public static object LoadClass(string code)
+        public static object? LoadClass(string code)
         {
             if (string.IsNullOrWhiteSpace(code))
             {
@@ -48,8 +52,10 @@ namespace SerializIt.Generator.Helpers
 
             var assemblyName = Path.GetRandomFileName();
 
-            MetadataReference[] references = new MetadataReference[]
+            var references = new MetadataReference[]
             {
+                MetadataReference.CreateFromFile(AppDomain.CurrentDomain.GetAssemblies().Single(a => a.GetName().Name == "netstandard").Location),
+                MetadataReference.CreateFromFile(typeof(ESerializers).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Stack<int>).Assembly.Location),
@@ -60,9 +66,9 @@ namespace SerializIt.Generator.Helpers
             var syntaxTree = CSharpSyntaxTree.ParseText(code);
 
             var compilation = CSharpCompilation.Create(assemblyName,
-                                                       _staticCodes.Concat(new[] { syntaxTree }),
+                                             new[] { syntaxTree },
                                                        references,
-                                                       options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                                                       new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             using var ms = new MemoryStream();
             var result = compilation.Emit(ms);
@@ -73,7 +79,7 @@ namespace SerializIt.Generator.Helpers
                         diagnostic.IsWarningAsError ||
                         diagnostic.Severity == DiagnosticSeverity.Error);
 
-                foreach (Diagnostic diagnostic in failures)
+                foreach (var diagnostic in failures)
                 {
                     Console.Error.WriteLine("{0}: {1}", diagnostic.Id, diagnostic.GetMessage());
                 }

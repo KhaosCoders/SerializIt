@@ -1,48 +1,130 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SerializIt.Generator.Helpers;
 using SerializIt.Generator.Model;
 using SerializIt.Generator.Serializers;
-using System;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 
 namespace SerializIt.Generator;
 
 [Generator]
-public class SerializItGenerator : ISourceGenerator
+public partial class SerializItGenerator : IIncrementalGenerator
 {
-    public void Initialize(GeneratorInitializationContext context)
+    public SerializItGenerator()
     {
-        context.RegisterForPostInitialization(context => AddStaticSerializItTypes(context));
-        context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+#if LOGS
+        Log.Debug("New SerializItGenerator instance");
+#endif
+        // HACK: Visual Studio might try to load SerializIt assembly multiple times...
+        AppDomain.CurrentDomain.AssemblyResolve += static (object _, ResolveEventArgs args) =>
+        {
+            var asmName = new AssemblyName(args.Name);
+            if (asmName.Name.Equals("SerializIt"))
+            {
+#if LOGS
+                Log.Debug("Resolving SerializIt assembly...");
+#endif
+                // reuse loaded SerializIt assembly in Visual Studio
+                return AppDomain.CurrentDomain.GetAssemblies().Single(a => a.GetName().Name == "SerializIt");
+            }
+            return null;
+        };
     }
 
-    public void Execute(GeneratorExecutionContext context)
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        if (context.SyntaxReceiver is not SyntaxReceiver receiver)
+#if LOGS
+        Log.Debug("Initialize SourceGenerator");
+#endif
+        var provider = context.CompilationProvider.Combine(
+            context.SyntaxProvider
+                .CreateSyntaxProvider(
+                    static (s, _) => IsSyntaxTargetForGeneration(s),
+                    static (ctx, _) => GetSemanticTargetForGeneration(ctx))
+                .Where(static m => m is not null)
+                .Collect());
+
+        context.RegisterImplementationSourceOutput(provider, this.Emit);
+    }
+
+    private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
+    {
+        //#if LOGS
+        //        Log.Debug("Visit syntax node {0}: {1}", node.Kind(), node);
+        //#endif
+        return node is TypeDeclarationSyntax { AttributeLists: { Count: > 0 } };
+    }
+
+    static TypeDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+    {
+        var typeDeclarationSyntax = (TypeDeclarationSyntax)context.Node;
+
+        foreach (var attributeListSyntax in typeDeclarationSyntax.AttributeLists)
         {
-            return;
+            foreach (var attributeSyntax in attributeListSyntax.Attributes)
+            {
+                var symbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol;
+                if (symbol is not IMethodSymbol attributeSymbol)
+                {
+                    continue;
+                }
+
+                var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
+                var fullName = attributeContainingTypeSymbol.ToDisplayString();
+
+                if (fullName == Names.SerializerAttribute)
+                {
+                    return typeDeclarationSyntax;
+                }
+            }
         }
 
-        var compilation = context.Compilation;
+        return null;
+    }
 
-        foreach (var serializeContextClass in receiver.SerializeContextClasses)
+    private void Emit(SourceProductionContext context,
+        (Compilation compilation, ImmutableArray<TypeDeclarationSyntax?> types) source)
+    {
+#if LOGS
+        Log.Debug("Emit {0} contexts: {1}{2}", source.types.Length, Environment.NewLine, string.Join(Environment.NewLine, source.types));
+#endif
+        var compilation = source.compilation;
+
+        foreach (var serializeContextClass in source.types)
         {
+            if (serializeContextClass == null)
+            {
+                continue;
+            }
+
             var model = compilation.GetSemanticModel(serializeContextClass.SyntaxTree);
             var classSymbol = model.GetDeclaredSymbol(serializeContextClass);
 
+            if (classSymbol == null)
+            {
+                continue;
+            }
+
             // Collect serialization info
-            SerializationContext serializationContext = new(classSymbol.Name, SymbolHelper.GetNamespaceName(classSymbol.ContainingNamespace));
-            serializationContext.Accessability = SymbolHelper.GetAccessor(classSymbol.DeclaredAccessibility);
+            SerializationContext serializationContext = new(classSymbol.Name,
+                SymbolHelper.GetNamespaceName(classSymbol.ContainingNamespace) ?? string.Empty);
+            serializationContext.Accessibility = SymbolHelper.GetAccessor(classSymbol.DeclaredAccessibility);
 
             // Serializer
             InitSerializer(serializationContext, classSymbol);
 
             // Collect types
-            foreach (var attribute in classSymbol.GetAttributes().Where(a => a.AttributeClass.Name == nameof(Resources.SerializeTypeAttribute)))
+            if (serializationContext.SerializeTypes == null)
+            {
+                return;
+            }
+
+            foreach (var attribute in classSymbol.GetAttributes().Where(a =>
+                         Names.SerializeTypeAttribute.Equals($"{SymbolHelper.GetNamespaceName(a.AttributeClass?.ContainingNamespace)}.{a.AttributeClass?.Name}")))
             {
                 if (attribute.ConstructorArguments.Length < 1
                     || attribute.ConstructorArguments[0].Value is not INamedTypeSymbol targetTypeSymbol
@@ -70,36 +152,31 @@ public class SerializItGenerator : ISourceGenerator
         try
         {
             // Load Serializer
-            var serializerAttr = classSymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass.Name == nameof(SerializerAttribute));
-            if (serializerAttr == null)
+            var attrSymbol = classSymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass?.Name == nameof(SerializerAttribute));
+            if (attrSymbol == null)
             {
                 return;
             }
 
-            var attr = CodeActivator.LoadAttribute(serializerAttr.ToString());
-            if (attr != null)
+            var attr = CodeActivator.LoadAttribute(attrSymbol.ToString());
+            if (attr is SerializerAttribute serializerAttr)
             {
-                var serializerType = SerializerFactory.GetSerializerType(attr);
+                var serializerType = SerializerFactory.GetSerializerType(serializerAttr);
                 if (serializerType != null && typeof(ISerializer).IsAssignableFrom(serializerType))
                 {
                     serializationContext.Serializer = (ISerializer)Activator.CreateInstance(serializerType);
                 }
 
-                var nsProp = attr.GetType().GetProperty(nameof(SerializerAttribute.Namespace), BindingFlags.Instance | BindingFlags.Public);
-                if (nsProp != null)
+                if (serializerAttr.Namespace != null)
                 {
-                    var ns = (string)nsProp.GetValue(attr);
-                    if (ns != null)
-                    {
-                        serializationContext.SerializerNamespace = ns;
-                    }
+                    serializationContext.SerializerNamespace = serializerAttr.Namespace;
                 }
             }
         }
         finally
         {
             // Default to JSON
-            serializationContext.Serializer ??= new JsonSerializer() { Options = new JsonSerializerOptions() };
+            serializationContext.Serializer ??= new JsonSerializer() { JsonOptions = new JsonSerializerOptions() };
         }
 
         InitSerializerOptions(serializationContext, classSymbol);
@@ -107,6 +184,11 @@ public class SerializItGenerator : ISourceGenerator
 
     private void InitSerializerOptions(SerializationContext serializationContext, INamedTypeSymbol classSymbol)
     {
+        if (serializationContext.Serializer is null)
+        {
+            return;
+        }
+
         var serializerType = serializationContext.Serializer.GetType();
 
         if (serializerType.GetCustomAttributes(typeof(SerializerOptionsAttribute), false).FirstOrDefault() is not SerializerOptionsAttribute seriOptAttr)
@@ -114,84 +196,40 @@ public class SerializItGenerator : ISourceGenerator
             return;
         }
 
-        var optionsClassName = seriOptAttr.OptionsType.Name;
-        var optionsAttr = classSymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass.Name == optionsClassName);
-        if (optionsAttr == null)
+        var optionsClassName = seriOptAttr.OptionsType?.Name;
+        var attrSymbol = classSymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass?.Name == optionsClassName);
+        if (attrSymbol == null)
         {
             return;
         }
 
-        var attr = CodeActivator.LoadAttribute(optionsAttr.ToString());
-        if (attr == null)
+        var attr = CodeActivator.LoadAttribute(attrSymbol.ToString());
+        if (attr is not OptionsAttribute optAttr)
         {
             return;
         }
 
-        var attrProp = attr.GetType().GetProperty(nameof(JsonOptionsAttribute.Options), BindingFlags.Instance | BindingFlags.Public);
-        var seriProp = serializerType.GetProperty(nameof(JsonOptionsAttribute.Options), BindingFlags.Instance | BindingFlags.Public);
-        if (attrProp == null || seriProp == null)
-        {
-            return;
-        }
-
-        var options = attrProp.GetValue(attr);
-        if (options == null)
-        {
-            return;
-        }
-
-        var opt = Caster.CastTo(ref options, seriProp.PropertyType);
-        seriProp.SetValue(serializationContext.Serializer, opt);
+        serializationContext.Serializer.Options = optAttr.Options;
     }
 
-    private void AddStaticSerializItTypes(GeneratorPostInitializationContext context)
-    {
-        bool initCodeActivator = !CodeActivator.IsInitialized;
-
-        void AddTypeFromResource(string name, string source)
-        {
-            if (source == null)
-            {
-                throw new ArgumentException($"Source can not be null. Class: {name}");
-            }
-            context.AddSource($"{name}.generated.cs", SourceText.From(source, Encoding.UTF8));
-
-            if (initCodeActivator)
-            {
-                CodeActivator.AddStaticCode(source);
-            }
-        }
-
-        AddTypeFromResource(nameof(Resources.ESerializers), Resources.ESerializers.Value);
-        AddTypeFromResource(nameof(Resources.SerializerAttribute), Resources.SerializerAttribute.Value);
-        AddTypeFromResource(nameof(Resources.SerializeTypeAttribute), Resources.SerializeTypeAttribute.Value);
-        AddTypeFromResource(nameof(Resources.SkipAttribute), Resources.SkipAttribute.Value);
-        AddTypeFromResource(nameof(Resources.OrderAttribute), Resources.OrderAttribute.Value);
-        AddTypeFromResource(nameof(Resources.IndentedWriter), Resources.IndentedWriter.Value);
-        AddTypeFromResource(nameof(Resources.ISerializerOptions), Resources.ISerializerOptions.Value);
-        AddTypeFromResource(nameof(Resources.JsonSerializerOptions), Resources.JsonSerializerOptions.Value);
-        AddTypeFromResource(nameof(Resources.YamlSerializerOptions), Resources.YamlSerializerOptions.Value);
-        AddTypeFromResource(nameof(Resources.XmlSerializerOptions), Resources.XmlSerializerOptions.Value);
-    }
-
-    private void AddSerializerClass(SerializationContext serializationContext, SerializeType serializationInfo, GeneratorExecutionContext context)
+    private void AddSerializerClass(SerializationContext serializationContext, SerializeType serializationInfo, SourceProductionContext context)
     {
         var generator = new SerializationGenerator();
-        string code = generator.GenerateSerializer(serializationContext, serializationInfo);
+        var code = generator.GenerateSerializer(serializationContext, serializationInfo);
         context.AddSource($"{serializationContext.SerializerNamespace}.{serializationInfo.SerializerName}.generated.cs", code);
     }
 
     private SerializeType CollectSerializationInfo(INamedTypeSymbol targetTypeSymbol)
     {
-        SerializeType serializationInfo = new(targetTypeSymbol);
-        serializationInfo.Accessability = SymbolHelper.GetAccessor(targetTypeSymbol.DeclaredAccessibility);
+        SerializeType serializationInfo = new(targetTypeSymbol.ToTypeSymbol());
+        serializationInfo.Accessibility = SymbolHelper.GetAccessor(targetTypeSymbol.DeclaredAccessibility);
 
         foreach (var memberSymbol in targetTypeSymbol.GetAllMembers(Accessibility.Public, SymbolKind.Property))
         {
             var memberInfo = memberSymbol switch
             {
-                IPropertySymbol propertySymbol => new SerializeMember(memberSymbol.Name, propertySymbol.Type),
-                IFieldSymbol fieldSymbol => new SerializeMember(memberSymbol.Name, fieldSymbol.Type),
+                IPropertySymbol propertySymbol => new SerializeMember(memberSymbol.Name, propertySymbol.Type.ToTypeSymbol()),
+                IFieldSymbol fieldSymbol => new SerializeMember(memberSymbol.Name, fieldSymbol.Type.ToTypeSymbol()),
                 _ => null
             };
             if (memberInfo == null)
@@ -203,16 +241,21 @@ public class SerializItGenerator : ISourceGenerator
 
             foreach (var attribute in memberSymbol.GetAttributes())
             {
+                if (attribute.AttributeClass?.Name is null)
+                {
+                    continue;
+                }
+
                 switch (attribute.AttributeClass.Name)
                 {
-                    case nameof(Resources.OrderAttribute) when attribute.ConstructorArguments.Length > 0:
+                    case nameof(OrderAttribute) when attribute.ConstructorArguments.Length > 0:
                         index = (int)attribute.ConstructorArguments[0].Value;
                         index = serializationInfo.GetNextOrderIndex(index);
                         break;
-                    case nameof(Resources.SkipAttribute) when attribute.ConstructorArguments.Length > 0 && (bool)attribute.ConstructorArguments[0].Value:
+                    case nameof(SkipAttribute) when attribute.ConstructorArguments.Length > 0 && (bool)attribute.ConstructorArguments[0].Value:
                         memberInfo.SkipIfDefault = (bool)attribute.ConstructorArguments[0].Value;
                         break;
-                    case nameof(Resources.SkipAttribute):
+                    case nameof(SkipAttribute):
                         memberInfo.Skip = true;
                         break;
                 }
