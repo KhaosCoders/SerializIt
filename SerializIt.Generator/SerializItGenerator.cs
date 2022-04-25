@@ -14,22 +14,42 @@ namespace SerializIt.Generator;
 [Generator]
 public partial class SerializItGenerator : IIncrementalGenerator
 {
-    public SerializItGenerator()
+    static SerializItGenerator()
     {
+        AppDomain.CurrentDomain.UnhandledException += static (s, e) =>
+        {
 #if LOGS
-        Log.Debug("New SerializItGenerator instance");
+            Log.Fatal(e.ExceptionObject as Exception, "Unhandled Exception");
 #endif
-        // HACK: Visual Studio might try to load SerializIt assembly multiple times...
+        };
+
         AppDomain.CurrentDomain.AssemblyResolve += static (object _, ResolveEventArgs args) =>
         {
-            var asmName = new AssemblyName(args.Name);
-            if (asmName.Name.Equals("SerializIt"))
+            try
+            {
+                var asmName = new AssemblyName(args.Name);
+                if (asmName.Name.Equals("SerializIt"))
+                {
+#if LOGS
+                    Log.Debug("Resolving SerializIt assembly...");
+#endif
+                    // reuse loaded SerializIt assembly in Visual Studio
+                    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                    var asm = Array.Find(assemblies, a => a.GetName().Name == "SerializIt");
+#if LOGS
+                    if (asm == null)
+                    {
+                        Log.Debug($"Assembly not found in {Environment.NewLine}{string.Join(Environment.NewLine, assemblies.AsEnumerable())}");
+                    }
+#endif
+                    return asm;
+                }
+            }
+            catch (Exception ex)
             {
 #if LOGS
-                Log.Debug("Resolving SerializIt assembly...");
+                Log.Fatal(ex, "Failed to resolve assembly");
 #endif
-                // reuse loaded SerializIt assembly in Visual Studio
-                return AppDomain.CurrentDomain.GetAssemblies().Single(a => a.GetName().Name == "SerializIt");
             }
             return null;
         };
@@ -37,113 +57,153 @@ public partial class SerializItGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        try
+        {
 #if LOGS
-        Log.Debug("Initialize SourceGenerator");
+            Log.Debug("Initialize SourceGenerator");
 #endif
-        var provider = context.CompilationProvider.Combine(
-            context.SyntaxProvider
-                .CreateSyntaxProvider(
-                    static (s, _) => IsSyntaxTargetForGeneration(s),
-                    static (ctx, _) => GetSemanticTargetForGeneration(ctx))
-                .Where(static m => m is not null)
-                .Collect());
+            var provider = context.CompilationProvider.Combine(
+                context.SyntaxProvider
+                    .CreateSyntaxProvider(
+                        static (s, _) => IsSyntaxTargetForGeneration(s),
+                        static (ctx, _) => GetSemanticTargetForGeneration(ctx))
+                    .Where(static m => m is not null)
+                    .Collect());
 
-        context.RegisterImplementationSourceOutput(provider, this.Emit);
+            context.RegisterImplementationSourceOutput(provider, this.Emit);
+        }
+        catch (Exception e)
+        {
+#if LOGS
+            Log.Fatal(e, "Failed to Initialize Generator");
+#endif
+            throw;
+        }
     }
 
     private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
     {
-        //#if LOGS
-        //        Log.Debug("Visit syntax node {0}: {1}", node.Kind(), node);
-        //#endif
-        return node is TypeDeclarationSyntax { AttributeLists: { Count: > 0 } };
+        try
+        {
+            //#if LOGS
+            //        Log.Debug("Visit syntax node {0}: {1}", node.Kind(), node);
+            //#endif
+            return node is TypeDeclarationSyntax { AttributeLists: { Count: > 0 } };
+        }
+        catch (Exception e)
+        {
+#if LOGS
+            Log.Fatal(e, "Failed to check syntax node");
+#endif
+            throw;
+        }
     }
 
     static TypeDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
-        var typeDeclarationSyntax = (TypeDeclarationSyntax)context.Node;
-
-        foreach (var attributeListSyntax in typeDeclarationSyntax.AttributeLists)
+        try
         {
-            foreach (var attributeSyntax in attributeListSyntax.Attributes)
+            var typeDeclarationSyntax = (TypeDeclarationSyntax)context.Node;
+
+            foreach (var attributeListSyntax in typeDeclarationSyntax.AttributeLists)
             {
-                var symbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol;
-                if (symbol is not IMethodSymbol attributeSymbol)
+                foreach (var attributeSyntax in attributeListSyntax.Attributes)
                 {
-                    continue;
-                }
+                    var symbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol;
+                    if (symbol is not IMethodSymbol attributeSymbol)
+                    {
+                        continue;
+                    }
 
-                var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
-                var fullName = attributeContainingTypeSymbol.ToDisplayString();
+                    var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
+                    var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                if (fullName == Names.SerializerAttribute)
-                {
-                    return typeDeclarationSyntax;
+                    if (fullName == Names.SerializerAttribute)
+                    {
+                        return typeDeclarationSyntax;
+                    }
                 }
             }
-        }
 
-        return null;
+            return null;
+        }
+        catch (Exception e)
+        {
+#if LOGS
+            Log.Fatal(e, "Failed to get semantic targets");
+#endif
+            throw;
+        }
     }
 
     private void Emit(SourceProductionContext context,
         (Compilation compilation, ImmutableArray<TypeDeclarationSyntax?> types) source)
     {
-#if LOGS
-        Log.Debug("Emit {0} contexts: {1}{2}", source.types.Length, Environment.NewLine, string.Join(Environment.NewLine, source.types));
-#endif
-        var compilation = source.compilation;
-
-        foreach (var serializeContextClass in source.types)
+        try
         {
-            if (serializeContextClass == null)
+#if LOGS
+            Log.Debug("Emit {0} contexts: {1}{2}", source.types.Length, Environment.NewLine, string.Join(Environment.NewLine, source.types));
+#endif
+            var compilation = source.compilation;
+
+            foreach (var serializeContextClass in source.types)
             {
-                continue;
-            }
-
-            var model = compilation.GetSemanticModel(serializeContextClass.SyntaxTree);
-            var classSymbol = model.GetDeclaredSymbol(serializeContextClass);
-
-            if (classSymbol == null)
-            {
-                continue;
-            }
-
-            // Collect serialization info
-            SerializationContext serializationContext = new(classSymbol.Name,
-                SymbolHelper.GetNamespaceName(classSymbol.ContainingNamespace) ?? string.Empty);
-            serializationContext.Accessibility = SymbolHelper.GetAccessor(classSymbol.DeclaredAccessibility);
-
-            // Serializer
-            InitSerializer(serializationContext, classSymbol);
-
-            // Collect types
-            if (serializationContext.SerializeTypes == null)
-            {
-                return;
-            }
-
-            foreach (var attribute in classSymbol.GetAttributes().Where(a =>
-                         Names.SerializeTypeAttribute.Equals($"{SymbolHelper.GetNamespaceName(a.AttributeClass?.ContainingNamespace)}.{a.AttributeClass?.Name}")))
-            {
-                if (attribute.ConstructorArguments.Length < 1
-                    || attribute.ConstructorArguments[0].Value is not INamedTypeSymbol targetTypeSymbol
-                    || targetTypeSymbol.Kind == SymbolKind.ErrorType)
+                if (serializeContextClass == null)
                 {
                     continue;
                 }
 
-                serializationContext.SerializeTypes.Add(CollectSerializationInfo(targetTypeSymbol));
-            }
+                var model = compilation.GetSemanticModel(serializeContextClass.SyntaxTree);
+                var classSymbol = model.GetDeclaredSymbol(serializeContextClass);
 
-            // Augment SerializationContext
-            ContextAugmentator.Augment(serializationContext, context);
+                if (classSymbol == null)
+                {
+                    continue;
+                }
 
-            // Build serializers
-            foreach (var seralizeType in serializationContext.SerializeTypes)
-            {
-                AddSerializerClass(serializationContext, seralizeType, context);
+                // Collect serialization info
+                SerializationContext serializationContext = new(classSymbol.Name,
+                    SymbolHelper.GetNamespaceName(classSymbol.ContainingNamespace) ?? string.Empty);
+                serializationContext.Accessibility = SymbolHelper.GetAccessor(classSymbol.DeclaredAccessibility);
+
+                // Serializer
+                InitSerializer(serializationContext, classSymbol);
+
+                // Collect types
+                if (serializationContext.SerializeTypes == null)
+                {
+                    return;
+                }
+
+                foreach (var attribute in classSymbol.GetAttributes().Where(a =>
+                             Names.SerializeTypeAttribute.Equals($"{SymbolHelper.GetNamespaceName(a.AttributeClass?.ContainingNamespace)}.{a.AttributeClass?.Name}")))
+                {
+                    if (attribute.ConstructorArguments.Length < 1
+                        || attribute.ConstructorArguments[0].Value is not INamedTypeSymbol targetTypeSymbol
+                        || targetTypeSymbol.Kind == SymbolKind.ErrorType)
+                    {
+                        continue;
+                    }
+
+                    serializationContext.SerializeTypes.Add(CollectSerializationInfo(targetTypeSymbol));
+                }
+
+                // Augment SerializationContext
+                ContextAugmentator.Augment(serializationContext, context);
+
+                // Build serializers
+                foreach (var seralizeType in serializationContext.SerializeTypes)
+                {
+                    AddSerializerClass(serializationContext, seralizeType, context);
+                }
             }
+        }
+        catch (Exception e)
+        {
+#if LOGS
+            Log.Fatal(e, "Failed to emit sources");
+#endif
+            throw;
         }
     }
 
@@ -172,6 +232,13 @@ public partial class SerializItGenerator : IIncrementalGenerator
                     serializationContext.SerializerNamespace = serializerAttr.Namespace;
                 }
             }
+        }
+        catch (Exception e)
+        {
+#if LOGS
+            Log.Fatal(e, "Failed to init serializer");
+#endif
+            throw;
         }
         finally
         {
