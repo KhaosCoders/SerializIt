@@ -10,14 +10,7 @@
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="JetBrains.Profiler.Api" Version="1.1.8" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\SerializIt.Generator\SerializIt.Generator.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false"
-                      SetTargetFramework="TargetFramework=netstandard2.0" />
-    <ProjectReference Include="..\SerializIt\SerializIt.csproj" />
+    <PackageReference Include="SerializIt" Version="0.2.0" />
   </ItemGroup>
 
 </Project>
