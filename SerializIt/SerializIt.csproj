@@ -23,5 +23,6 @@
 
   <ItemGroup>
     <None Include="..\SerializIt.Generator\bin\$(Configuration)\netstandard2.0\SerializIt.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="bin\$(Configuration)\netstandard2.0\SerializIt.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 </Project>
