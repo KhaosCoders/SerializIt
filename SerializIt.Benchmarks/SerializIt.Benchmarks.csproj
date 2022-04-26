@@ -11,20 +11,13 @@
     <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
     <PackageReference Include="Tinyhand" Version="0.28.4" />
     <PackageReference Include="YamlDotNet" Version="11.2.1" />
+    <PackageReference Include="SerializIt " Version="0.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="Data\pokedex.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\SerializIt.Generator\SerializIt.Generator.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false"
-                      SetTargetFramework="TargetFramework=netstandard2.0" />
-    <ProjectReference Include="..\SerializIt\SerializIt.csproj" />
   </ItemGroup>
 
 </Project>
