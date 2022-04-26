@@ -14,6 +14,9 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/KhaosCoders/SerializIt</PackageProjectUrl>
     <RepositoryUrl>https://github.com/KhaosCoders/SerializIt</RepositoryUrl>
+    <PackageIcon>SmallIcon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>serializer;json;yaml;xml;serialization</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -22,6 +25,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\Art\SmallIcon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Include="..\SerializIt.Generator\bin\$(Configuration)\netstandard2.0\SerializIt.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="bin\$(Configuration)\netstandard2.0\SerializIt.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
