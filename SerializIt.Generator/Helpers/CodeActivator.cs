@@ -86,10 +86,10 @@ public static class CodeActivator
         return default;
     }
 
-    private static void AddMetadataRef(this List<MetadataReference> list, Type type) =>
+    internal static void AddMetadataRef(this List<MetadataReference> list, Type type) =>
         list.Add(MetadataReference.CreateFromFile(type.Assembly.Location));
 
-    private static void AddMetadataRef(this List<MetadataReference> list, string asmName)
+    internal static void AddMetadataRef(this List<MetadataReference> list, string asmName)
     {
         var asm = Array.Find(AppDomain.CurrentDomain.GetAssemblies(), a => a.GetName().Name.Equals(asmName));
         if (asm != null)

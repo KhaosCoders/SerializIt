@@ -31,4 +31,14 @@ public class CodeActivatorTests
         Assert.IsTrue(opt.AddPreamble);
         Assert.IsTrue(opt.AddPostamble);
     }
+
+    [TestMethod]
+    public void TestFailure()
+    {
+        const string code = "will fail";
+
+        var att = CodeActivator.Attribute<YamlOptionsAttribute>(code);
+
+        Assert.IsNull(att);
+    }
 }
