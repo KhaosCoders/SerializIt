@@ -100,11 +100,11 @@ This serializer supports the following features:
 
 ## Pending improvements
 
-[] Value Converters (serialize complex data types, like `GUID` or `BitInteger`)  
-[] Custom serializers (support custom formats)  
-[] Serializer specific member options (like CDATA for XML or Inline for Yaml & Json)  
-[] XML Namespaces  
-[] XML Attributes  
+[ ] Value Converters (serialize complex data types, like `GUID` or `BitInteger`)  
+[ ] Custom serializers (support custom formats)  
+[ ] Serializer specific member options (like CDATA for XML or Inline for Yaml & Json)  
+[ ] XML Namespaces  
+[ ] XML Attributes  
 
 # Support this <3
 
