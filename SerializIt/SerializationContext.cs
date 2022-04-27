@@ -7,7 +7,7 @@ public record SerializationContext
     public string? ContextNamespace { get; set; }
     public string? Accessibility { get; set; }
 
-    public IList<SerializeType>? SerializeTypes { set; get; } = new List<SerializeType>();
+    public IList<SerializeType> SerializeTypes { set; get; } = new List<SerializeType>();
 
     public ISerializer? Serializer { get; set; }
 

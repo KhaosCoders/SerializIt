@@ -4,13 +4,13 @@ using System.Reflection;
 using SerializIt.CodeAnalysis;
 using SerializIt.Generator.Model;
 
-namespace SerializIt.Generator.Helpers;
+namespace SerializIt.Generator.Serializers;
 
-internal class SerializationGenerator
+internal static class SerializationGenerator
 {
     private static readonly Version version = Assembly.GetExecutingAssembly().GetName().Version;
 
-    public string GenerateSerializer(SerializationContext context, SerializeType typeInfo)
+    public static string Generate(SerializationContext context, SerializeType typeInfo)
     {
         IndentedWriter sb = new();
         WriteSerializerClass(context, typeInfo, sb);

@@ -6,94 +6,95 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace SerializIt.Generator.Helpers
+namespace SerializIt.Generator.Helpers;
+
+public static class CodeActivator
 {
-    internal static class CodeActivator
+    public static T? Attribute<T>(string code) where T : Attribute
     {
-        static CodeActivator()
+        if (string.IsNullOrWhiteSpace(code))
         {
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+            return default;
         }
 
-        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        // Ensure attribute syntax
+        if (code[0] != '[')
         {
-            var asmName = new AssemblyName(args.Name);
-            if (asmName.Name.Equals("SerializIt"))
-            {
-                return typeof(ESerializers).Assembly;
-            }
-            return null;
+            code = $"[{code.Replace("Attribute(", "(")}]";
         }
 
-        public static Attribute? LoadAttribute(string attrCode)
+        // compile dummy class with attribute
+        var objWithAttr = Class<object>($"namespace Generated {{ {code} public class Dummy {{ }} }}", "Generated.Dummy");
+
+        // get dummy class type and extract attribute
+        var objType = objWithAttr?.GetType();
+        return objType?.GetCustomAttributes(false)[0] as T;
+    }
+
+    public static T? Class<T>(string code, string fullName) where T : class
+    {
+        if (string.IsNullOrWhiteSpace(code))
         {
-            if (string.IsNullOrWhiteSpace(attrCode))
-            {
-                return null;
-            }
-
-            if (attrCode[0] != '[')
-            {
-                attrCode = $"[{attrCode.Replace("Attribute(", "(")}]";
-            }
-
-            var objWithAttr = LoadClass($"namespace Generated {{ {attrCode} public class Dummy {{ }} }}");
-
-            var objType = objWithAttr?.GetType();
-            return objType?.GetCustomAttributes(false)[0] as Attribute;
+            return default;
         }
 
-        public static object? LoadClass(string code)
+        List<MetadataReference> references = new();
+        references.AddMetadataRef(typeof(ESerializers));
+        references.AddMetadataRef(typeof(object));
+        references.AddMetadataRef(typeof(Enumerable));
+        references.AddMetadataRef(typeof(Stack<int>));
+        references.AddMetadataRef(typeof(Accessibility));
+        references.AddMetadataRef(typeof(CSharpCompilation));
+        references.AddMetadataRef("netstandard");
+        references.AddMetadataRef("System.Runtime");
+
+        // compile class as dll
+        var assemblyName = Path.GetRandomFileName();
+        var syntaxTree = CSharpSyntaxTree.ParseText(code);
+        var compilation = CSharpCompilation.Create(assemblyName,
+                                         new[] { syntaxTree },
+                                                   references,
+                                                   new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        // emit bits to MemoryStream
+        using var ms = new MemoryStream();
+        var result = compilation.Emit(ms);
+
+        if (!result.Success)
         {
-            if (string.IsNullOrWhiteSpace(code))
+            // compilation failed
+            var failures = result.Diagnostics.Where(diagnostic =>
+                    diagnostic.IsWarningAsError ||
+                    diagnostic.Severity == DiagnosticSeverity.Error);
+
+            foreach (var diagnostic in failures)
             {
-                return null;
+                Console.Error.WriteLine("{0}: {1}", diagnostic.Id, diagnostic.GetMessage());
             }
+        }
+        else
+        {
+            // load assembly from memory
+            ms.Seek(0, SeekOrigin.Begin);
+            var assembly = Assembly.Load(ms.ToArray());
 
-            var assemblyName = Path.GetRandomFileName();
+            // create an instance for the compiled type
+            var type = assembly.GetType(fullName);
+            return Activator.CreateInstance(type) as T;
+        }
 
-            var references = new MetadataReference[]
-            {
-                MetadataReference.CreateFromFile(AppDomain.CurrentDomain.GetAssemblies().Single(a => a.GetName().Name == "netstandard").Location),
-                MetadataReference.CreateFromFile(typeof(ESerializers).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Stack<int>).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Accessibility).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(CSharpCompilation).Assembly.Location)
-            };
+        return default;
+    }
 
-            var syntaxTree = CSharpSyntaxTree.ParseText(code);
+    private static void AddMetadataRef(this List<MetadataReference> list, Type type) =>
+        list.Add(MetadataReference.CreateFromFile(type.Assembly.Location));
 
-            var compilation = CSharpCompilation.Create(assemblyName,
-                                             new[] { syntaxTree },
-                                                       references,
-                                                       new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-            using var ms = new MemoryStream();
-            var result = compilation.Emit(ms);
-
-            if (!result.Success)
-            {
-                var failures = result.Diagnostics.Where(diagnostic =>
-                        diagnostic.IsWarningAsError ||
-                        diagnostic.Severity == DiagnosticSeverity.Error);
-
-                foreach (var diagnostic in failures)
-                {
-                    Console.Error.WriteLine("{0}: {1}", diagnostic.Id, diagnostic.GetMessage());
-                }
-            }
-            else
-            {
-                ms.Seek(0, SeekOrigin.Begin);
-                var assembly = Assembly.Load(ms.ToArray());
-
-                var type = assembly.GetType("Generated.Dummy");
-                return Activator.CreateInstance(type);
-            }
-
-            return null;
+    private static void AddMetadataRef(this List<MetadataReference> list, string asmName)
+    {
+        var asm = Array.Find(AppDomain.CurrentDomain.GetAssemblies(), a => a.GetName().Name.Equals(asmName));
+        if (asm != null)
+        {
+            list.Add(MetadataReference.CreateFromFile(asm.Location));
         }
     }
 }
