@@ -16,10 +16,10 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
-#    - name: Test
-#      run: dotnet test --no-restore --verbosity normal
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
 
     - name: Package
       run: dotnet pack -c Release -o bin SerializIt/SerializIt.csproj
-    - name: Publish
+    - name: Publish to nuget.org
       run: dotnet nuget push bin/*.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json
