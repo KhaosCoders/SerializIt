@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution 
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerializIt.Tests", "SerializIt.Tests\SerializIt.Tests.csproj", "{3363F2BE-7D93-4784-A926-049BB89CFD7A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{19C051FA-D67D-47DE-85D9-007B52D52200}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19C051FA-D67D-47DE-85D9-007B52D52200}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19C051FA-D67D-47DE-85D9-007B52D52200}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3363F2BE-7D93-4784-A926-049BB89CFD7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3363F2BE-7D93-4784-A926-049BB89CFD7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3363F2BE-7D93-4784-A926-049BB89CFD7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3363F2BE-7D93-4784-A926-049BB89CFD7A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
