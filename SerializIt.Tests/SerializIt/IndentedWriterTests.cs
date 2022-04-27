@@ -7,9 +7,12 @@ namespace SerializIt.Tests.SerializIt;
 [TestClass]
 public class IndentedWriterTests
 {
+    private readonly string NL;
+
     public IndentedWriterTests()
     {
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        NL = System.Environment.NewLine;
     }
 
     #region Indent
@@ -62,7 +65,7 @@ public class IndentedWriterTests
         writer.Write("x");
 
         var result = writer.ToString();
-        Assert.AreEqual("\r\n.x", result);
+        Assert.AreEqual($"{NL}.x", result);
     }
 
     [TestMethod]
@@ -92,7 +95,7 @@ public class IndentedWriterTests
         writer.Write("x");
 
         var result = writer.ToString();
-        Assert.AreEqual("\r\nx", result);
+        Assert.AreEqual($"{NL}x", result);
     }
 
     #endregion
@@ -106,7 +109,7 @@ public class IndentedWriterTests
         writer.NewLine();
 
         var result = writer.ToString();
-        Assert.AreEqual("\r\n", result);
+        Assert.AreEqual($"{NL}", result);
     }
 
     [TestMethod]
@@ -121,7 +124,7 @@ public class IndentedWriterTests
         writer.NewLine();
 
         var result = writer.ToString();
-        Assert.AreEqual("\r\n.\r\n", result);
+        Assert.AreEqual($"{NL}.{NL}", result);
     }
 
     [TestMethod]
@@ -132,7 +135,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("x\r\n", result);
+        Assert.AreEqual($"x{NL}", result);
     }
 
     [TestMethod]
@@ -158,7 +161,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("x\r\n", result);
+        Assert.AreEqual($"x{NL}", result);
     }
 
     [TestMethod]
@@ -169,7 +172,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("x\r\n", result);
+        Assert.AreEqual($"x{NL}", result);
     }
 
     [TestMethod]
@@ -180,7 +183,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("xyz\r\n", result);
+        Assert.AreEqual($"xyz{NL}", result);
     }
 
     [TestMethod]
@@ -191,7 +194,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("1\r\n", result);
+        Assert.AreEqual($"1{NL}", result);
     }
 
     [TestMethod]
@@ -202,7 +205,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("1\r\n", result);
+        Assert.AreEqual($"1{NL}", result);
     }
 
     [TestMethod]
@@ -213,7 +216,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("1\r\n", result);
+        Assert.AreEqual($"1{NL}", result);
     }
 
     [TestMethod]
@@ -224,7 +227,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("1\r\n", result);
+        Assert.AreEqual($"1{NL}", result);
     }
 
     [TestMethod]
@@ -235,7 +238,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("1\r\n", result);
+        Assert.AreEqual($"1{NL}", result);
     }
 
     [TestMethod]
@@ -246,7 +249,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("1\r\n", result);
+        Assert.AreEqual($"1{NL}", result);
     }
 
     [TestMethod]
@@ -257,7 +260,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("1\r\n", result);
+        Assert.AreEqual($"1{NL}", result);
     }
 
     [TestMethod]
@@ -268,7 +271,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("1.2\r\n", result);
+        Assert.AreEqual($"1.2{NL}", result);
     }
 
     [TestMethod]
@@ -279,7 +282,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("1.2\r\n", result);
+        Assert.AreEqual($"1.2{NL}", result);
     }
 
     [TestMethod]
@@ -290,7 +293,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("1.2\r\n", result);
+        Assert.AreEqual($"1.2{NL}", result);
     }
 
     [TestMethod]
@@ -304,7 +307,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("x\r\n", result);
+        Assert.AreEqual($"x{NL}", result);
     }
 
     [TestMethod]
@@ -315,7 +318,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("True\r\n", result);
+        Assert.AreEqual($"True{NL}", result);
     }
 
     [TestMethod]
@@ -334,7 +337,7 @@ public class IndentedWriterTests
         writer.NewLineIfNeeded();
 
         var result = writer.ToString();
-        Assert.AreEqual("\r\n\t1\r\n\t2\r\n\t3\r\n", result);
+        Assert.AreEqual($"{NL}\t1{NL}\t2{NL}\t3{NL}", result);
     }
 
     #endregion
