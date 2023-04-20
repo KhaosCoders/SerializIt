@@ -8,7 +8,9 @@ namespace SerializIt.Generator;
 
 internal static class Log
 {
-    private static readonly string LogFile = @"D:\serializit.log";
+    private static readonly string LogFile = Path.Combine(
+        Directory.GetDirectoryRoot(Directory.GetCurrentDirectory()),
+        "serializit.log");
 
     public static void Debug(string message, params object[] @params)
     {
@@ -26,7 +28,6 @@ internal static class Log
 
         File.AppendAllText(LogFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [FTL] {string.Format(message, @params)}{Environment.NewLine}{sb}{Environment.NewLine}");
     }
-
 
     private static void BuildExceptionString(StringBuilder sb, Exception ex)
     {
