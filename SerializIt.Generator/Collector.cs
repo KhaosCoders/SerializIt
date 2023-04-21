@@ -97,10 +97,15 @@ internal static class Collector
                         }
                         break;
                     case nameof(SkipAttribute) when attribute.ConstructorArguments.Length > 0:
-                        // Skip member if its value is default
-                        if (attribute.ConstructorArguments[0].Value is bool ifDefault)
+                        if (attribute.ConstructorArguments[0].Value is bool ifDefault && ifDefault)
                         {
-                            memberInfo.SkipIfDefault = ifDefault;
+                            // Skip member if its value is default
+                            memberInfo.SkipIfDefault = true;
+                        }
+                        else
+                        {
+                            // Always skip member
+                            memberInfo.Skip = true;
                         }
                         break;
                     case nameof(SkipAttribute):

@@ -15,6 +15,12 @@ using SerializIt;
 
 namespace Tests {
 
+public record RecordType(int ID, string Name)
+{
+    [Skip]
+    public bool IsHidden { get; set; }
+};
+
 public class DataType
 {
     public int ID { get; set; }
@@ -37,6 +43,7 @@ public class ContainerType
 [SerializerOptions]
 [SerializeType(typeof(DataType))]
 [SerializeType(typeof(ContainerType))]
+[SerializeType(typeof(RecordType))]
 public partial class Serializer{ }
 
 }

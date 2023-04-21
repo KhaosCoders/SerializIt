@@ -48,6 +48,16 @@ public class SerializItGeneratorTests
         driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
 
         Assert.IsTrue(diagnostics.IsEmpty);
-        Assert.AreEqual(4, outputCompilation.SyntaxTrees.Count());
+        Assert.AreEqual(5, outputCompilation.SyntaxTrees.Count());
+
+        AssetSerializerClass(outputCompilation.SyntaxTrees.Skip(2).First().ToString(), "DataType");
+        AssetSerializerClass(outputCompilation.SyntaxTrees.Skip(3).First().ToString(), "ContainerType");
+        AssetSerializerClass(outputCompilation.SyntaxTrees.Skip(4).First().ToString(), "RecordType");
+    }
+
+    private static void AssetSerializerClass(string code, string name)
+    {
+        Assert.IsTrue(code.Contains($"public class {name}Serializer"));
+        Assert.IsFalse(code.Contains("IsHidden"));
     }
 }
