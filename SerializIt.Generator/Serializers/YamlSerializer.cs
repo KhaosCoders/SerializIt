@@ -235,6 +235,8 @@ internal class YamlSerializer : BaseSerializer
     }
 
     private string FormatMemberName(string name) =>
-        char.ToLower(name[0]) + name.Substring(1);
+        string.IsNullOrEmpty(name)
+            ? name
+            : char.ToLower(name[0]) + name.Substring(1);
 
 }
