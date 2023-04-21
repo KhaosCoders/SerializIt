@@ -8,25 +8,26 @@ namespace SerializIt.Generator;
 
 internal static class Log
 {
-    private static readonly string LogFile = Path.Combine(
-        Directory.GetDirectoryRoot(Directory.GetCurrentDirectory()),
-        "serializit.log");
+    private static readonly string? logFile = Environment.GetEnvironmentVariable("SERIALIZIT_LOG");
 
     public static void Debug(string message, params object[] @params)
     {
-        File.AppendAllText(LogFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [DBG] {string.Format(message, @params)}{Environment.NewLine}");
+        if (logFile == null) return;
+        File.AppendAllText(logFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [DBG] {string.Format(message, @params)}{Environment.NewLine}");
     }
+
     public static void Fatal(Exception? ex, string message, params object[] @params)
     {
+        if (logFile == null) return;
         if (ex == null)
         {
-            File.AppendAllText(LogFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [FTL] {string.Format(message, @params)}{Environment.NewLine}");
+            File.AppendAllText(logFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [FTL] {string.Format(message, @params)}{Environment.NewLine}");
             return;
         }
         StringBuilder sb = new();
         BuildExceptionString(sb, ex);
 
-        File.AppendAllText(LogFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [FTL] {string.Format(message, @params)}{Environment.NewLine}{sb}{Environment.NewLine}");
+        File.AppendAllText(logFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [FTL] {string.Format(message, @params)}{Environment.NewLine}{sb}{Environment.NewLine}");
     }
 
     private static void BuildExceptionString(StringBuilder sb, Exception ex)
