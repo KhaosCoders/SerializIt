@@ -136,7 +136,10 @@ internal static class SerializationGenerator
 
     private static void WriteElementMembers(SerializationContext context, SerializeType typeInfo, IndentedWriter writer)
     {
-        var members = typeInfo.Members.Where(m => !m.Skip).ToList();
+        var members = typeInfo.Members
+            .Where(m => !m.Skip)
+            .OrderBy(m => m.Order)
+            .ToList();
         for (var i = 0; i < members.Count; i++)
         {
             var member = members[i];

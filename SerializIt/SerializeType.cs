@@ -21,12 +21,8 @@ public record SerializeType
         Accessibility = "public";
     }
 
-    public int GetNextOrderIndex(int index = default)
+    public int GetNextOrderIndex(int index = 0)
     {
-        if (index == default)
-        {
-            index = 0;
-        }
         while (Members.Any(m => m.Order == index))
         {
             index++;
