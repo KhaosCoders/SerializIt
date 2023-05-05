@@ -120,7 +120,7 @@ internal class JsonSerializer : BaseSerializer
         }
     }
 
-    public override string StartCollection(string typeName, string? memberName, bool isArray, bool inlineValue, IndentedWriter writer)
+    public override string StartCollection(string typeName, string? memberName, bool isArray, EInline inline, IndentedWriter writer)
     {
         writer.NewLine();
         if (JsonOptions.PrettyPrint)
@@ -185,7 +185,7 @@ internal class JsonSerializer : BaseSerializer
         return $"{memberName}[n]";
     }
 
-    public override void EndCollection(string? memberName, bool inlineValue, IndentedWriter writer)
+    public override void EndCollection(string? memberName, EInline inline, IndentedWriter writer)
     {
         writer.Indent--;
         writer.NewLine();
@@ -210,7 +210,7 @@ internal class JsonSerializer : BaseSerializer
         }
     }
 
-    public override void WriteStringMember(string? memberName, bool inlineValue, IndentedWriter writer)
+    public override void WriteStringMember(string? memberName, EInline inline, IndentedWriter writer)
     {
         writer.NewLine();
         AddString("_quotes",@$"\{JsonOptions.Quotes}");

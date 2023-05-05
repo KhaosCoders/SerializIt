@@ -23,6 +23,12 @@ internal abstract class BaseSerializer : ISerializer
         }
     }
 
+    public void Fields(SerializationContext context, SerializeType typeInfo, IndentedWriter writer)
+    {
+        writer.Write("[ThreadStatic] static IndentedWriter _writer;");
+        writer.NewLine();
+    }
+
     public virtual void Usings(SerializeType typeInfo, IndentedWriter writer)
     {
         writer.Write("using System;");
@@ -42,16 +48,13 @@ internal abstract class BaseSerializer : ISerializer
 
     public virtual void StartElementFunc(SerializationContext context, SerializeType typeInfo, IndentedWriter writer)
     {
-        writer.NewLine();
-        writer.Write("[ThreadStatic] static IndentedWriter _writer;");
-        writer.NewLine();
         writer.Write("internal void SerializeElement(");
         writer.Write(typeInfo?.Namespace
                      ?? throw new ArgumentException($"{nameof(typeInfo.Namespace)} can't be null"));
         writer.Write('.');
         writer.Write(typeInfo?.TypeName
                      ?? throw new ArgumentException($"{nameof(typeInfo.TypeName)} can't be null"));
-        writer.Write(" item, IndentedWriter writer)");
+        writer.Write(" item, EInline inline, IndentedWriter writer)");
         writer.NewLine();
         writer.Write('{');
         writer.Indent++;
@@ -87,6 +90,7 @@ internal abstract class BaseSerializer : ISerializer
         writer.NewLine();
         writer.Write('{');
         writer.Indent++;
+        writer.NewLine();
         writer.Write("writer.Clear();");
         writer.Indent--;
         writer.NewLine();
@@ -111,7 +115,7 @@ internal abstract class BaseSerializer : ISerializer
         writer.Write('}');
     }
 
-    public virtual void WriteValueMember(string? memberName, bool inlineValue, IndentedWriter writer)
+    public virtual void WriteValueMember(string? memberName, EInline inline, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write("writer.Write(");
@@ -120,7 +124,7 @@ internal abstract class BaseSerializer : ISerializer
         writer.Write(");");
     }
 
-    public virtual void WriteStringMember(string? memberName, bool inlineValue, IndentedWriter writer)
+    public virtual void WriteStringMember(string? memberName, EInline inline, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write(@"writer.Write('""')");
@@ -133,12 +137,21 @@ internal abstract class BaseSerializer : ISerializer
         writer.Write(@"writer.Write('""');");
     }
 
-    public virtual void WriteSerializedMember(string? memberName, SerializeType? serializedType, IndentedWriter writer)
+    public virtual void WriteSerializedMember(string? memberName, SerializeType? serializedType, EInline inline, IndentedWriter writer)
     {
+        // Always inline value or control it by parameter
+        var inlineValueStr = inline switch
+        {
+            EInline.Always => "true",
+            EInline.Never => "false",
+            _ => "inlineValue",
+        };
+
         writer.NewLine();
         if (memberName == null || serializedType == null)
         {
-            writer.Write("SerializeElement(item");
+            writer.Write("SerializeElement(item, ");
+            writer.Write(inlineValueStr);
             writer.Write(", writer);");
             return;
         }
@@ -148,6 +161,8 @@ internal abstract class BaseSerializer : ISerializer
                      ?? throw new ArgumentException($"{nameof(serializedType.TypeName)} can't be null"));
         writer.Write(".SerializeElement(");
         writer.Write(memberName);
+        writer.Write(", ");
+        writer.Write(inlineValueStr);
         writer.Write(", writer);");
     }
 
@@ -160,8 +175,8 @@ internal abstract class BaseSerializer : ISerializer
     public abstract void StartMember(SerializeMember member, bool firstMember, IndentedWriter writer);
     public abstract void EndMember(SerializeMember member, bool lastMember, IndentedWriter writer);
 
-    public abstract string StartCollection(string typeName, string? memberName, bool isArray, bool inlineValue, IndentedWriter writer);
-    public abstract void EndCollection(string? memberName, bool inlineValue, IndentedWriter writer);
+    public abstract string StartCollection(string typeName, string? memberName, bool isArray, EInline inline, IndentedWriter writer);
+    public abstract void EndCollection(string? memberName, EInline inline, IndentedWriter writer);
 
     public void StartMemberNullCheck(string memberName, IndentedWriter sb)
     {
