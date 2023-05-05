@@ -112,6 +112,10 @@ internal static class Collector
                         // Always skip member
                         memberInfo.Skip = true;
                         break;
+                    case nameof(InlineAttribute):
+                        // Inline member value
+                        memberInfo.Inline = true;
+                        break;
                 }
             }
             memberInfo.Order = index;

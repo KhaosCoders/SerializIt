@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SerializIt;
+﻿namespace SerializIt;
 
 [AttributeUsage(AttributeTargets.Property)]
 public class SkipAttribute : Attribute

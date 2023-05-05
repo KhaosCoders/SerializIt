@@ -157,7 +157,7 @@ internal static class SerializationGenerator
                 context.Serializer?.StartMemberNullCheck(memberName, writer);
             }
 
-            WriteMemberValue(context, member.MemberType, memberName, writer);
+            WriteMemberValue(context, member.MemberType, memberName, member.Inline, writer);
 
             if (member.MemberType.IsReferenceType && context.Serializer?.SkipNullValues == false)
             {
@@ -173,19 +173,24 @@ internal static class SerializationGenerator
         }
     }
 
-    private static void WriteMemberValue(SerializationContext context, TypeSymbol memberType, string? memberName, IndentedWriter writer)
+    private static void WriteMemberValue(
+        SerializationContext context,
+        TypeSymbol memberType,
+        string? memberName,
+        bool inlineValue,
+        IndentedWriter writer)
     {
         if (memberType.Name == "String")
         {
-            context.Serializer?.WriteStringMember(memberName, writer);
+            context.Serializer?.WriteStringMember(memberName, inlineValue, writer);
         }
         else if (memberType.IsCollection)
         {
             var typeSymbol = memberType.CollectionType;
             var typeName = $"{typeSymbol?.Namespace ?? throw new ArgumentException($"{nameof(typeSymbol.Namespace)} can't be null")}.{typeSymbol.Name}";
-            var elementName = context.Serializer?.StartCollection(typeName, memberName, memberType.IsArray, writer);
-            WriteMemberValue(context, typeSymbol, elementName, writer);
-            context.Serializer?.EndCollection(memberName, writer);
+            var elementName = context.Serializer?.StartCollection(typeName, memberName, memberType.IsArray, inlineValue, writer);
+            WriteMemberValue(context, typeSymbol, elementName, inlineValue, writer);
+            context.Serializer?.EndCollection(memberName, inlineValue, writer);
         }
         else if (context.SerializeTypes?.FirstOrDefault(item => item.Type.CompareTo(memberType) == 0) is SerializeType serializedType)
         {
@@ -193,7 +198,7 @@ internal static class SerializationGenerator
         }
         else if (memberType.IsValueType)
         {
-            context.Serializer?.WriteValueMember(memberName, writer);
+            context.Serializer?.WriteValueMember(memberName, inlineValue, writer);
         }
     }
 

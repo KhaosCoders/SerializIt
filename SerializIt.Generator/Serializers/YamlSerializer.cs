@@ -111,7 +111,7 @@ internal class YamlSerializer : BaseSerializer
         }
     }
 
-    public override string StartCollection(string typeName, string? memberName, bool isArray, IndentedWriter writer)
+    public override string StartCollection(string typeName, string? memberName, bool isArray, bool inlineValue, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write("if (");
@@ -125,6 +125,7 @@ internal class YamlSerializer : BaseSerializer
         {
             writer.Write(".Count == 0)");
         }
+
         writer.NewLine();
         writer.Write('{');
         writer.Indent++;
@@ -141,10 +142,21 @@ internal class YamlSerializer : BaseSerializer
         writer.Write('{');
         writer.Indent++;
         writer.NewLine();
-        writer.Write("writer.NewLine();");
-        writer.NewLine();
-        writer.Write("writer.Indent++;");
-        writer.NewLine();
+
+        if (inlineValue)
+        {
+            writer.Write("writer.Write('[');");
+            writer.NewLine();
+            writer.Write("bool firstValue = true;");
+            writer.NewLine();
+        }
+        else
+        {
+            writer.Write("writer.NewLine();");
+            writer.NewLine();
+            writer.Write("writer.Indent++;");
+            writer.NewLine();
+        }
 
         writer.Write("foreach(");
         writer.Write(typeName);
@@ -155,34 +167,66 @@ internal class YamlSerializer : BaseSerializer
         writer.Write("{");
         writer.Indent++;
         writer.NewLine();
-        writer.Write(@"writer.Write(""- "");");
-        writer.NewLine();
-        writer.Write("writer.Indent++;");
-        writer.NewLine();
-        writer.Write("writer.StartLayer();");
+
+        if (inlineValue)
+        {
+            writer.Write("if (!firstValue)");
+            writer.NewLine();
+            writer.Write('{');
+            writer.Indent++;
+            writer.NewLine();
+            writer.Write(@"writer.Write("", "");");
+            writer.Indent--;
+            writer.NewLine();
+            writer.Write('}');
+            writer.NewLine();
+            writer.Write("firstValue = false;");
+        }
+        else
+        {
+            writer.Write(@"writer.Write(""- "");");
+            writer.NewLine();
+            writer.Write("writer.Indent++;");
+            writer.NewLine();
+            writer.Write("writer.StartLayer();");
+        }
 
         return "x";
     }
 
-    public override void EndCollection(string? memberName, IndentedWriter writer)
+    public override void EndCollection(string? memberName, bool inlineValue, IndentedWriter writer)
     {
-        writer.NewLine();
-        writer.Write("writer.EndLayer();");
-        writer.NewLine();
-        writer.Write("writer.Indent--;");
+        if (!inlineValue)
+        {
+            writer.NewLine();
+            writer.Write("writer.EndLayer();");
+            writer.NewLine();
+            writer.Write("writer.Indent--;");
+        }
+
         writer.Indent--;
         writer.NewLine();
         writer.Write("}");
         writer.NewLine();
-        writer.Write("writer.Indent--;");
-        writer.NewLine();
-        writer.Write("writer.NewLineIfNeeded();");
-        writer.NewLine();
+
+        if (inlineValue)
+        {
+            writer.Write("writer.Write(']');");
+            writer.NewLine();
+            writer.Write("writer.NewLine();");
+        }
+        else
+        {
+            writer.Write("writer.Indent--;");
+            writer.NewLine();
+            writer.Write("writer.NewLineIfNeeded();");
+        }
         writer.Indent--;
+        writer.NewLine();
         writer.Write("}");
     }
 
-    public override void WriteStringMember(string? memberName, IndentedWriter writer)
+    public override void WriteStringMember(string? memberName, bool inlineValue, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write("if (");
@@ -216,22 +260,28 @@ internal class YamlSerializer : BaseSerializer
         writer.Write("writer.Write(");
         writer.Write(memberName);
         writer.Write(");");
-        writer.NewLine();
-        writer.Write("writer.NewLine();");
+        if (!inlineValue)
+        {
+            writer.NewLine();
+            writer.Write("writer.NewLine();");
+        }
         writer.Indent--;
         writer.NewLine();
         writer.Write('}');
     }
 
-    public override void WriteValueMember(string? memberName, IndentedWriter writer)
+    public override void WriteValueMember(string? memberName, bool inlineValue, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write("writer.Write(");
         writer.Write(memberName
                      ?? throw new ArgumentException($"{nameof(memberName)} can't be null"));
         writer.Write(");");
-        writer.NewLine();
-        writer.Write("writer.NewLine();");
+        if (!inlineValue)
+        {
+            writer.NewLine();
+            writer.Write("writer.NewLine();");
+        }
     }
 
     private string FormatMemberName(string name) =>

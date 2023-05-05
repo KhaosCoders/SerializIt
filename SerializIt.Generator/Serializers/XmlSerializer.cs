@@ -128,7 +128,7 @@ internal class XmlSerializer : BaseSerializer
         writer.Write('}');
     }
 
-    public override string StartCollection(string typeName, string? memberName, bool isArray, IndentedWriter writer)
+    public override string StartCollection(string typeName, string? memberName, bool isArray, bool inlineValue, IndentedWriter writer)
     {
         if (XmlOptions?.PrettyPrint == true)
         {
@@ -156,7 +156,7 @@ internal class XmlSerializer : BaseSerializer
         return $"{memberName}[n]";
     }
 
-    public override void EndCollection(string? memberName, IndentedWriter writer)
+    public override void EndCollection(string? memberName, bool inlineValue, IndentedWriter writer)
     {
         writer.Indent--;
         writer.NewLine();
@@ -173,7 +173,7 @@ internal class XmlSerializer : BaseSerializer
         writer.Write("}");
     }
 
-    public override void WriteStringMember(string? memberName, IndentedWriter sb)
+    public override void WriteStringMember(string? memberName, bool inlineValue, IndentedWriter sb)
     {
         sb.NewLine();
         sb.Write(@"writer.Write(""<![CDATA["");");

@@ -12,6 +12,8 @@ public record SerializeMember
 
     public bool Skip { get; set; }
 
+    public bool Inline { get; set; }
+
     public bool SkipIfDefault { get; set; }
 
     public SerializeMember(string name, TypeSymbol type)

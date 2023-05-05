@@ -27,11 +27,11 @@ public interface ISerializer
     void StartMember(SerializeMember member, bool firstMember, IndentedWriter writer);
     void EndMember(SerializeMember member, bool lastMember, IndentedWriter writer);
 
-    string StartCollection(string typeName, string? memberName, bool isArray, IndentedWriter writer);
-    void EndCollection(string? memberName, IndentedWriter writer);
+    string StartCollection(string typeName, string? memberName, bool isArray, bool inlineValue, IndentedWriter writer);
+    void EndCollection(string? memberName, bool inlineValue, IndentedWriter writer);
 
-    void WriteValueMember(string? memberName, IndentedWriter writer);
-    void WriteStringMember(string? memberName, IndentedWriter writer);
+    void WriteValueMember(string? memberName, bool inlineValue, IndentedWriter writer);
+    void WriteStringMember(string? memberName, bool inlineValue, IndentedWriter writer);
     void WriteSerializedMember(string? memberName, SerializeType serializedType, IndentedWriter writer);
 
     void StartNotDefaultCondition(string memberName, IndentedWriter writer);

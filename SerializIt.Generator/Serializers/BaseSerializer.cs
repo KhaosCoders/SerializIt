@@ -111,7 +111,7 @@ internal abstract class BaseSerializer : ISerializer
         writer.Write('}');
     }
 
-    public virtual void WriteValueMember(string? memberName, IndentedWriter writer)
+    public virtual void WriteValueMember(string? memberName, bool inlineValue, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write("writer.Write(");
@@ -120,7 +120,7 @@ internal abstract class BaseSerializer : ISerializer
         writer.Write(");");
     }
 
-    public virtual void WriteStringMember(string? memberName, IndentedWriter writer)
+    public virtual void WriteStringMember(string? memberName, bool inlineValue, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write(@"writer.Write('""')");
@@ -160,8 +160,8 @@ internal abstract class BaseSerializer : ISerializer
     public abstract void StartMember(SerializeMember member, bool firstMember, IndentedWriter writer);
     public abstract void EndMember(SerializeMember member, bool lastMember, IndentedWriter writer);
 
-    public abstract string StartCollection(string typeName, string? memberName, bool isArray, IndentedWriter writer);
-    public abstract void EndCollection(string? memberName, IndentedWriter writer);
+    public abstract string StartCollection(string typeName, string? memberName, bool isArray, bool inlineValue, IndentedWriter writer);
+    public abstract void EndCollection(string? memberName, bool inlineValue, IndentedWriter writer);
 
     public void StartMemberNullCheck(string memberName, IndentedWriter sb)
     {
