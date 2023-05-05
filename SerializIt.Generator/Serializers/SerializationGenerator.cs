@@ -210,8 +210,39 @@ internal static class SerializationGenerator
         {
             var typeSymbol = memberType.CollectionType;
             var typeName = $"{typeSymbol?.Namespace ?? throw new ArgumentException($"{nameof(typeSymbol.Namespace)} can't be null")}.{typeSymbol.Name}";
+
+            // Start loop
             var elementName = context.Serializer?.StartCollection(typeName, memberName, memberType.IsArray, inline, writer);
-            WriteMemberValue(context, typeSymbol, elementName, inline, writer);
+
+            // Serialize elements
+            var possibleTypes = context.SerializeTypes
+                ?.Where(item => item.Type.IsAssignableTo(typeName))
+                ?.ToList();
+
+            if (possibleTypes?.Count > 1)
+            {
+                // Switch on type to serialize
+                context.Serializer?.StartTypeSwitch(context, elementName, writer);
+
+                for (var i = 0; i < possibleTypes.Count; i++)
+                {
+                    var possibleType = possibleTypes[i];
+                    var lastType = i == possibleTypes.Count - 1;
+                    var varName = $"{elementName}{i}";
+                    context.Serializer?.StartTypeCase(possibleType, varName, lastType, writer);
+                    WriteMemberValue(context, possibleType.Type, varName, inline, writer);
+                    context.Serializer?.EndTypeCase(possibleType, lastType, writer);
+                }
+
+                context.Serializer?.EndTypeSwitch(context, writer);
+            }
+            else
+            {
+                // Single type
+                WriteMemberValue(context, typeSymbol, elementName, inline, writer);
+            }
+
+            // End loop
             context.Serializer?.EndCollection(memberName, inline, writer);
         }
         else if (context.SerializeTypes?.FirstOrDefault(item => item.Type.CompareTo(memberType) == 0) is SerializeType serializedType)

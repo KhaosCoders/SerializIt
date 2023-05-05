@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using SerializIt.CodeAnalysis;
@@ -16,6 +17,14 @@ internal static class TypeSymbolExtensions
             .FirstOrDefault();
         var isCollection = collectionType != default;
 
+        List<string> baseTypes = new();
+        var current = symbol;
+        while (current.BaseType != null)
+        {
+            baseTypes.Add(current.BaseType.ToString());
+            current = current.BaseType;
+        }
+
         return new()
         {
             Name = symbol.Name,
@@ -24,7 +33,8 @@ internal static class TypeSymbolExtensions
             IsReferenceType = symbol.IsReferenceType,
             IsArray = symbol.Kind == SymbolKind.ArrayType,
             IsCollection = isCollection,
-            CollectionType = collectionType?.ToTypeSymbol()
+            CollectionType = collectionType?.ToTypeSymbol(),
+            BaseTypes = baseTypes.ToArray(),
         };
     }
 }

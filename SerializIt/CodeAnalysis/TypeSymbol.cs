@@ -1,4 +1,6 @@
 ﻿
+using SerializIt.Generator.Model;
+
 namespace SerializIt.CodeAnalysis;
 
 public record TypeSymbol : IComparable
@@ -10,6 +12,7 @@ public record TypeSymbol : IComparable
     public bool IsArray { get; set; }
     public bool IsCollection { get; set; }
     public TypeSymbol? CollectionType { get; set; }
+    public string[] BaseTypes { get; set; } = Array.Empty<string>();
 
     public int CompareTo(object obj)
     {
@@ -19,4 +22,7 @@ public record TypeSymbol : IComparable
         }
         return $"{Namespace}.{Name}".CompareTo($"{symbol.Namespace}.{symbol.Name}");
     }
+
+    public bool IsAssignableTo(string typeName) =>
+        typeName.Equals($"{Namespace}.{Name}") || BaseTypes.Contains(typeName);
 }

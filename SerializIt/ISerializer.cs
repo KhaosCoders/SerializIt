@@ -39,5 +39,8 @@ public interface ISerializer
     void StartMemberNullCheck(string memberName, IndentedWriter writer);
     void EndMemberNullCheck(string memberName, IndentedWriter writer);
     void Fields(SerializationContext context, SerializeType typeInfo, IndentedWriter writer);
+    void StartTypeSwitch(SerializationContext context, string? memberName, IndentedWriter writer);
+    void EndTypeSwitch(SerializationContext context, IndentedWriter writer);
+    void StartTypeCase(SerializeType possibleType, string varName, bool lastType, IndentedWriter writer);
+    void EndTypeCase(SerializeType possibleType, bool lastType, IndentedWriter writer);
 }
-

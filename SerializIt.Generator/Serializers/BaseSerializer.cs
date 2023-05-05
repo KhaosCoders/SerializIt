@@ -206,4 +206,40 @@ internal abstract class BaseSerializer : ISerializer
         sb.NewLine();
         sb.Write('}');
     }
+
+    public void StartTypeSwitch(SerializationContext context, string? memberName, IndentedWriter sb)
+    {
+        sb.NewLine();
+        sb.Write("switch (");
+        sb.Write(memberName ?? throw new ArgumentException($"{nameof(memberName)} can't be null"));
+        sb.Write(')');
+        sb.NewLine();
+        sb.Write('{');
+        sb.Indent++;
+    }
+
+    public void EndTypeSwitch(SerializationContext context, IndentedWriter sb)
+    {
+        sb.Indent--;
+        sb.NewLine();
+        sb.Write('}');
+    }
+
+    public void StartTypeCase(SerializeType possibleType, string varName, bool lastType, IndentedWriter sb)
+    {
+        sb.NewLine();
+        sb.Write("case ");
+        sb.Write($"{possibleType.Namespace}.{possibleType.TypeName}");
+        sb.Write(' ');
+        sb.Write(varName);
+        sb.Write(':');
+        sb.Indent++;
+    }
+
+    public void EndTypeCase(SerializeType possibleType, bool lastType, IndentedWriter sb)
+    {
+        sb.NewLine();
+        sb.Write("break;");
+        sb.Indent--;
+    }
 }
