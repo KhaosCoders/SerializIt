@@ -142,9 +142,9 @@ internal abstract class BaseSerializer : ISerializer
         // Always inline value or control it by parameter
         var inlineValueStr = inline switch
         {
-            EInline.Always => "true",
-            EInline.Never => "false",
-            _ => "inlineValue",
+            EInline.Always => "EInline.Always",
+            EInline.Never => "EInline.Never",
+            _ => "inline",
         };
 
         writer.NewLine();
