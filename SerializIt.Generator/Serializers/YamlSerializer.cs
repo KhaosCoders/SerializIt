@@ -53,6 +53,8 @@ internal class YamlSerializer : BaseSerializer
     {
         base.StartRootElement(typeInfo, writer);
         writer.NewLine();
+        writer.Write("bool firstMember = true;");
+        writer.NewLine();
         writer.Write("writer.StartLayer();");
     }
 
@@ -63,8 +65,42 @@ internal class YamlSerializer : BaseSerializer
         base.EndRootElement(typeInfo, writer);
     }
 
-    public override void StartMember(SerializeMember member, bool firstMember, IndentedWriter writer)
+    public override void StartMember(SerializeMember member, EInline inline, bool firstMember, IndentedWriter writer)
     {
+        if (inline == EInline.Always)
+        {
+            if (!firstMember)
+            {
+                writer.NewLine();
+                writer.Write("if (!firstMember)");
+                writer.NewLine();
+                writer.Write('{');
+                writer.Indent++;
+                writer.NewLine();
+                writer.Write(@"writer.Write("", "");");
+                writer.Indent--;
+                writer.NewLine();
+                writer.Write('}');
+            }
+        }
+        else
+        {
+            if (!firstMember && inline == EInline.Auto)
+            {
+                writer.NewLine();
+                writer.Write("if (!firstMember && inline == EInline.Always)");
+                writer.NewLine();
+                writer.Write('{');
+                writer.Indent++;
+                writer.NewLine();
+                writer.Write(@"writer.Write("", "");");
+                writer.Indent--;
+                writer.NewLine();
+                writer.Write('}');
+            }
+        }
+        writer.NewLine();
+        writer.Write("firstMember = false;");
         writer.NewLine();
         writer.Write("writer.IsLayerSet = true;");
         writer.NewLine();
@@ -73,7 +109,30 @@ internal class YamlSerializer : BaseSerializer
         writer.Write(@": "");");
     }
 
-    public override void EndMember(SerializeMember member, bool lastMember, IndentedWriter writer) { }
+    public override void EndMember(SerializeMember member, bool lastMember, EInline inline, IndentedWriter writer)
+    {
+        if (inline != EInline.Always)
+        {
+            if (inline == EInline.Auto)
+            {
+                writer.NewLine();
+                writer.Write("if (inline != EInline.Always)");
+                writer.NewLine();
+                writer.Write('{');
+                writer.Indent++;
+            }
+
+            writer.NewLine();
+            writer.Write("writer.NewLine();");
+
+            if (inline == EInline.Auto)
+            {
+                writer.Indent--;
+                writer.NewLine();
+                writer.Write('}');
+            }
+        }
+    }
 
     public override void WriteSerializedMember(string? memberName,
                                                SerializeType? serializedType,
@@ -91,6 +150,25 @@ internal class YamlSerializer : BaseSerializer
             }
             else
             {
+                if (inline == EInline.Auto)
+                {
+                    writer.Write("if (inline == EInline.Always)");
+                    writer.NewLine();
+                    writer.Write('{');
+                    writer.Indent++;
+                    writer.NewLine();
+                    writer.Write("writer.Write('{');");
+                    writer.Indent--;
+                    writer.NewLine();
+                    writer.Write('}');
+                    writer.NewLine();
+                    writer.Write("else");
+                    writer.NewLine();
+                    writer.Write('{');
+                    writer.Indent++;
+                    writer.NewLine();
+                }
+
                 writer.Write("if (writer.IsLayerSet)");
                 writer.NewLine();
                 writer.Write('{');
@@ -102,6 +180,13 @@ internal class YamlSerializer : BaseSerializer
                 writer.Indent--;
                 writer.NewLine();
                 writer.Write('}');
+
+                if (inline == EInline.Auto)
+                {
+                    writer.Indent--;
+                    writer.NewLine();
+                    writer.Write('}');
+                }
             }
         }
 
@@ -114,11 +199,28 @@ internal class YamlSerializer : BaseSerializer
             if (inline == EInline.Always)
             {
                 writer.Write("writer.Write('}');");
-                writer.NewLine();
-                writer.Write("writer.NewLine();");
             }
             else
             {
+                if (inline == EInline.Auto)
+                {
+                    writer.Write("if (inline == EInline.Always)");
+                    writer.NewLine();
+                    writer.Write('{');
+                    writer.Indent++;
+                    writer.NewLine();
+                    writer.Write("writer.Write('}');");
+                    writer.Indent--;
+                    writer.NewLine();
+                    writer.Write('}');
+                    writer.NewLine();
+                    writer.Write("else");
+                    writer.NewLine();
+                    writer.Write('{');
+                    writer.Indent++;
+                    writer.NewLine();
+                }
+
                 writer.Write("if (writer.IsLayerSet)");
                 writer.NewLine();
                 writer.Write('{');
@@ -128,6 +230,13 @@ internal class YamlSerializer : BaseSerializer
                 writer.Indent--;
                 writer.NewLine();
                 writer.Write('}');
+
+                if (inline == EInline.Auto)
+                {
+                    writer.Indent--;
+                    writer.NewLine();
+                    writer.Write('}');
+                }
             }
         }
     }
@@ -152,8 +261,6 @@ internal class YamlSerializer : BaseSerializer
         writer.Indent++;
         writer.NewLine();
         writer.Write(@"writer.Write(""[ ]"");");
-        writer.NewLine();
-        writer.Write("writer.NewLine();");
         writer.Indent--;
         writer.NewLine();
         writer.Write('}');
@@ -173,10 +280,38 @@ internal class YamlSerializer : BaseSerializer
         }
         else
         {
+            if (inline == EInline.Auto)
+            {
+                writer.Write("bool firstValue = true;");
+                writer.NewLine();
+                writer.Write("if (inline == EInline.Always)");
+                writer.NewLine();
+                writer.Write('{');
+                writer.Indent++;
+                writer.NewLine();
+                writer.Write("writer.Write('[');");
+                writer.Indent--;
+                writer.NewLine();
+                writer.Write('}');
+                writer.NewLine();
+                writer.Write("else");
+                writer.NewLine();
+                writer.Write('{');
+                writer.Indent++;
+                writer.NewLine();
+            }
+
             writer.Write("writer.NewLine();");
             writer.NewLine();
             writer.Write("writer.Indent++;");
             writer.NewLine();
+
+            if (inline == EInline.Auto)
+            {
+                writer.Indent--;
+                writer.Write('}');
+                writer.NewLine();
+            }
         }
 
         writer.Write("foreach(");
@@ -205,24 +340,76 @@ internal class YamlSerializer : BaseSerializer
         }
         else
         {
+            if (inline == EInline.Auto)
+            {
+                writer.Write("if (inline == EInline.Always)");
+                writer.NewLine();
+                writer.Write('{');
+                writer.Indent++;
+                writer.NewLine();
+                writer.Write("if (!firstValue)");
+                writer.NewLine();
+                writer.Write('{');
+                writer.Indent++;
+                writer.NewLine();
+                writer.Write(@"writer.Write("", "");");
+                writer.Indent--;
+                writer.NewLine();
+                writer.Write('}');
+                writer.NewLine();
+                writer.Write("firstValue = false;");
+                writer.Indent--;
+                writer.NewLine();
+                writer.Write('}');
+                writer.NewLine();
+                writer.Write("else");
+                writer.NewLine();
+                writer.Write('{');
+                writer.Indent++;
+                writer.NewLine();
+            }
+
             writer.Write(@"writer.Write(""- "");");
             writer.NewLine();
             writer.Write("writer.Indent++;");
             writer.NewLine();
             writer.Write("writer.StartLayer();");
+
+            if (inline == EInline.Auto)
+            {
+                writer.Indent--;
+                writer.NewLine();
+                writer.Write('}');
+            }
         }
 
         return "x";
     }
 
-    public override void EndCollection(string? memberName, EInline inline, IndentedWriter writer)
+    public override void EndCollection(string? memberName, EInline inline, bool lastMember, IndentedWriter writer)
     {
         if (inline != EInline.Always)
         {
+            if (inline == EInline.Auto)
+            {
+                writer.NewLine();
+                writer.Write("if (inline != EInline.Always)");
+                writer.NewLine();
+                writer.Write('{');
+                writer.Indent++;
+            }
+
             writer.NewLine();
             writer.Write("writer.EndLayer();");
             writer.NewLine();
             writer.Write("writer.Indent--;");
+
+            if (inline == EInline.Auto)
+            {
+                writer.Indent--;
+                writer.NewLine();
+                writer.Write('}');
+            }
         }
 
         writer.Indent--;
@@ -233,21 +420,45 @@ internal class YamlSerializer : BaseSerializer
         if (inline == EInline.Always)
         {
             writer.Write("writer.Write(']');");
-            writer.NewLine();
-            writer.Write("writer.NewLine();");
         }
         else
         {
+            if (inline == EInline.Auto)
+            {
+                writer.Write("if (inline == EInline.Always)");
+                writer.NewLine();
+                writer.Write('{');
+                writer.Indent++;
+                writer.NewLine();
+                writer.Write("writer.Write(']');");
+                writer.Indent--;
+                writer.NewLine();
+                writer.Write('}');
+                writer.NewLine();
+                writer.Write("else");
+                writer.NewLine();
+                writer.Write('{');
+                writer.Indent++;
+                writer.NewLine();
+            }
+
             writer.Write("writer.Indent--;");
             writer.NewLine();
             writer.Write("writer.NewLineIfNeeded();");
+
+            if (inline == EInline.Auto)
+            {
+                writer.Indent--;
+                writer.NewLine();
+                writer.Write('}');
+            }
         }
         writer.Indent--;
         writer.NewLine();
         writer.Write("}");
     }
 
-    public override void WriteStringMember(string? memberName, EInline inline, IndentedWriter writer)
+    public override void WriteStringMember(string? memberName, EInline inline, bool lastMember, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write("if (");
@@ -281,28 +492,18 @@ internal class YamlSerializer : BaseSerializer
         writer.Write("writer.Write(");
         writer.Write(memberName);
         writer.Write(");");
-        if (inline != EInline.Always)
-        {
-            writer.NewLine();
-            writer.Write("writer.NewLine();");
-        }
         writer.Indent--;
         writer.NewLine();
         writer.Write('}');
     }
 
-    public override void WriteValueMember(string? memberName, EInline inline, IndentedWriter writer)
+    public override void WriteValueMember(string? memberName, EInline inline, bool lastMember, IndentedWriter writer)
     {
         writer.NewLine();
         writer.Write("writer.Write(");
         writer.Write(memberName
                      ?? throw new ArgumentException($"{nameof(memberName)} can't be null"));
         writer.Write(");");
-        if (inline != EInline.Always)
-        {
-            writer.NewLine();
-            writer.Write("writer.NewLine();");
-        }
     }
 
     private string FormatMemberName(string name) =>

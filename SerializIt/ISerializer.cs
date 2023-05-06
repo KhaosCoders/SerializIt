@@ -24,14 +24,14 @@ public interface ISerializer
     void StartRootElement(SerializeType typeInfo, IndentedWriter writer);
     void EndRootElement(SerializeType typeInfo, IndentedWriter writer);
 
-    void StartMember(SerializeMember member, bool firstMember, IndentedWriter writer);
-    void EndMember(SerializeMember member, bool lastMember, IndentedWriter writer);
+    void StartMember(SerializeMember member, EInline inline, bool firstMember, IndentedWriter writer);
+    void EndMember(SerializeMember member, bool lastMember, EInline inline, IndentedWriter writer);
 
     string StartCollection(string typeName, string? memberName, bool isArray, EInline inline, IndentedWriter writer);
-    void EndCollection(string? memberName, EInline inline, IndentedWriter writer);
+    void EndCollection(string? memberName, EInline inline, bool lastMember, IndentedWriter writer);
 
-    void WriteValueMember(string? memberName, EInline inline, IndentedWriter writer);
-    void WriteStringMember(string? memberName, EInline inline, IndentedWriter writer);
+    void WriteValueMember(string? memberName, EInline inline, bool lastMember, IndentedWriter writer);
+    void WriteStringMember(string? memberName, EInline inline, bool lastMember, IndentedWriter writer);
     void WriteSerializedMember(string? memberName, SerializeType serializedType, EInline inline, IndentedWriter writer);
 
     void StartNotDefaultCondition(string memberName, IndentedWriter writer);

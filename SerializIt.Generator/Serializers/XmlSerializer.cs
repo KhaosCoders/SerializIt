@@ -73,7 +73,7 @@ internal class XmlSerializer : BaseSerializer
         writer.Write("writer.EndLayer();");
     }
 
-    public override void StartMember(SerializeMember member, bool firstMember, IndentedWriter writer)
+    public override void StartMember(SerializeMember member, EInline inline, bool firstMember, IndentedWriter writer)
     {
         if (member.MemberType.IsReferenceType)
         {
@@ -102,7 +102,7 @@ internal class XmlSerializer : BaseSerializer
         }
     }
 
-    public override void EndMember(SerializeMember member, bool lastMember, IndentedWriter writer)
+    public override void EndMember(SerializeMember member, bool lastMember, EInline inline, IndentedWriter writer)
     {
         if (XmlOptions?.PrettyPrint == true)
         {
@@ -156,7 +156,7 @@ internal class XmlSerializer : BaseSerializer
         return $"{memberName}[n]";
     }
 
-    public override void EndCollection(string? memberName, EInline inline, IndentedWriter writer)
+    public override void EndCollection(string? memberName, EInline inline, bool lastMember, IndentedWriter writer)
     {
         writer.Indent--;
         writer.NewLine();
@@ -173,7 +173,7 @@ internal class XmlSerializer : BaseSerializer
         writer.Write("}");
     }
 
-    public override void WriteStringMember(string? memberName, EInline inline, IndentedWriter sb)
+    public override void WriteStringMember(string? memberName, EInline inline, bool lastMember, IndentedWriter sb)
     {
         sb.NewLine();
         sb.Write(@"writer.Write(""<![CDATA["");");

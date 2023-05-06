@@ -72,7 +72,7 @@ internal class JsonSerializer : BaseSerializer
         writer.Write("writer.EndLayer();");
     }
 
-    public override void StartMember(SerializeMember member, bool firstMember, IndentedWriter writer)
+    public override void StartMember(SerializeMember member, EInline inline, bool firstMember, IndentedWriter writer)
     {
         if (member.MemberType.IsReferenceType && JsonOptions.SkipNullValues)
         {
@@ -110,7 +110,7 @@ internal class JsonSerializer : BaseSerializer
         writer.Write($"writer.Write(_prop{member.MemberName});");
     }
 
-    public override void EndMember(SerializeMember member, bool lastMember, IndentedWriter writer)
+    public override void EndMember(SerializeMember member, bool lastMember, EInline inline, IndentedWriter writer)
     {
         if (member.MemberType.IsReferenceType && JsonOptions.SkipNullValues)
         {
@@ -185,7 +185,7 @@ internal class JsonSerializer : BaseSerializer
         return $"{memberName}[n]";
     }
 
-    public override void EndCollection(string? memberName, EInline inline, IndentedWriter writer)
+    public override void EndCollection(string? memberName, EInline inline, bool lastMember, IndentedWriter writer)
     {
         writer.Indent--;
         writer.NewLine();
@@ -210,7 +210,7 @@ internal class JsonSerializer : BaseSerializer
         }
     }
 
-    public override void WriteStringMember(string? memberName, EInline inline, IndentedWriter writer)
+    public override void WriteStringMember(string? memberName, EInline inline, bool lastMember, IndentedWriter writer)
     {
         writer.NewLine();
         AddString("_quotes",@$"\{JsonOptions.Quotes}");

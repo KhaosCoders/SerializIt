@@ -163,11 +163,14 @@ internal static class SerializationGenerator
             var memberName = $"item.{member.MemberName}";
             var firstMember = i == 0;
             var lastMember = i == members.Count - 1;
+            var inline = member.Inline ? EInline.Always : EInline.Auto;
+
             if (member.SkipIfDefault)
             {
                 context.Serializer?.StartNotDefaultCondition(memberName, writer);
             }
-            context.Serializer?.StartMember(member, firstMember, writer);
+
+            context.Serializer?.StartMember(member, inline, firstMember, writer);
 
             if (member.MemberType.IsReferenceType && context.Serializer?.SkipNullValues == false)
             {
@@ -178,7 +181,8 @@ internal static class SerializationGenerator
                 context,
                 member.MemberType,
                 memberName,
-                member.Inline ? EInline.Always : EInline.Auto,
+                inline,
+                lastMember,
                 writer);
 
             if (member.MemberType.IsReferenceType && context.Serializer?.SkipNullValues == false)
@@ -186,7 +190,7 @@ internal static class SerializationGenerator
                 context.Serializer?.EndMemberNullCheck(memberName, writer);
             }
 
-            context.Serializer?.EndMember(member, lastMember, writer);
+            context.Serializer?.EndMember(member, lastMember, inline, writer);
 
             if (member.SkipIfDefault)
             {
@@ -200,11 +204,12 @@ internal static class SerializationGenerator
         TypeSymbol memberType,
         string? memberName,
         EInline inline,
+        bool lastMember,
         IndentedWriter writer)
     {
         if (memberType.Name == "String")
         {
-            context.Serializer?.WriteStringMember(memberName, inline, writer);
+            context.Serializer?.WriteStringMember(memberName, inline, lastMember, writer);
         }
         else if (memberType.IsCollection)
         {
@@ -230,7 +235,7 @@ internal static class SerializationGenerator
                     var lastType = i == possibleTypes.Count - 1;
                     var varName = $"{elementName}{i}";
                     context.Serializer?.StartTypeCase(possibleType, varName, lastType, writer);
-                    WriteMemberValue(context, possibleType.Type, varName, inline, writer);
+                    WriteMemberValue(context, possibleType.Type, varName, inline, lastMember, writer);
                     context.Serializer?.EndTypeCase(possibleType, lastType, writer);
                 }
 
@@ -239,11 +244,11 @@ internal static class SerializationGenerator
             else
             {
                 // Single type
-                WriteMemberValue(context, typeSymbol, elementName, inline, writer);
+                WriteMemberValue(context, typeSymbol, elementName, inline, lastMember, writer);
             }
 
             // End loop
-            context.Serializer?.EndCollection(memberName, inline, writer);
+            context.Serializer?.EndCollection(memberName, inline, lastMember, writer);
         }
         else if (context.SerializeTypes?.FirstOrDefault(item => item.Type.CompareTo(memberType) == 0) is SerializeType serializedType)
         {
@@ -251,7 +256,7 @@ internal static class SerializationGenerator
         }
         else if (memberType.IsValueType)
         {
-            context.Serializer?.WriteValueMember(memberName, inline, writer);
+            context.Serializer?.WriteValueMember(memberName, inline, lastMember, writer);
         }
     }
 
