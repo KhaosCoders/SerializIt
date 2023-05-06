@@ -100,7 +100,7 @@ internal class YamlSerializer : BaseSerializer
         writer.Indent++;
 
         writer.NewLine();
-        writer.Write("writer.NewLine();");
+        writer.Write("writer.NewLineIfNeeded();");
 
         writer.Indent--;
         writer.NewLine();
