@@ -13,7 +13,7 @@ public class XmlOptionsAttribute : OptionsAttribute
 {
     public XmlSerializerOptions? XmlOptions
     {
-        get => (XmlSerializerOptions)Options;
+        get => (XmlSerializerOptions)Options!;
         set => Options = value;
     }
 

@@ -12,7 +12,7 @@ public class YamlOptionsAttribute : OptionsAttribute
 {
     public YamlSerializerOptions? YamlOptions
     {
-        get => (YamlSerializerOptions)Options;
+        get => (YamlSerializerOptions)Options!;
         set => Options = value;
     }
 

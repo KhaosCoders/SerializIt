@@ -14,7 +14,7 @@ public class JsonOptionsAttribute : OptionsAttribute
 {
     public JsonSerializerOptions? JsonOptions
     {
-        get => (JsonSerializerOptions) Options;
+        get => (JsonSerializerOptions)Options!;
         set => Options = value;
     }
 
