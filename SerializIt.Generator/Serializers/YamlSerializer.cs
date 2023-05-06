@@ -67,38 +67,20 @@ internal class YamlSerializer : BaseSerializer
 
     public override void StartMember(SerializeMember member, EInline inline, bool firstMember, IndentedWriter writer)
     {
-        if (inline == EInline.Always)
+        if (!firstMember && inline != EInline.Never)
         {
-            if (!firstMember)
-            {
-                writer.NewLine();
-                writer.Write("if (!firstMember)");
-                writer.NewLine();
-                writer.Write('{');
-                writer.Indent++;
-                writer.NewLine();
-                writer.Write(@"writer.Write("", "");");
-                writer.Indent--;
-                writer.NewLine();
-                writer.Write('}');
-            }
+            writer.NewLine();
+            writer.Write("if (!firstMember && inline == EInline.Always)");
+            writer.NewLine();
+            writer.Write('{');
+            writer.Indent++;
+            writer.NewLine();
+            writer.Write(@"writer.Write("", "");");
+            writer.Indent--;
+            writer.NewLine();
+            writer.Write('}');
         }
-        else
-        {
-            if (!firstMember && inline == EInline.Auto)
-            {
-                writer.NewLine();
-                writer.Write("if (!firstMember && inline == EInline.Always)");
-                writer.NewLine();
-                writer.Write('{');
-                writer.Indent++;
-                writer.NewLine();
-                writer.Write(@"writer.Write("", "");");
-                writer.Indent--;
-                writer.NewLine();
-                writer.Write('}');
-            }
-        }
+
         writer.NewLine();
         writer.Write("firstMember = false;");
         writer.NewLine();
@@ -111,27 +93,18 @@ internal class YamlSerializer : BaseSerializer
 
     public override void EndMember(SerializeMember member, bool lastMember, EInline inline, IndentedWriter writer)
     {
-        if (inline != EInline.Always)
-        {
-            if (inline == EInline.Auto)
-            {
-                writer.NewLine();
-                writer.Write("if (inline != EInline.Always)");
-                writer.NewLine();
-                writer.Write('{');
-                writer.Indent++;
-            }
+        writer.NewLine();
+        writer.Write("if (inline != EInline.Always)");
+        writer.NewLine();
+        writer.Write('{');
+        writer.Indent++;
 
-            writer.NewLine();
-            writer.Write("writer.NewLine();");
+        writer.NewLine();
+        writer.Write("writer.NewLine();");
 
-            if (inline == EInline.Auto)
-            {
-                writer.Indent--;
-                writer.NewLine();
-                writer.Write('}');
-            }
-        }
+        writer.Indent--;
+        writer.NewLine();
+        writer.Write('}');
     }
 
     public override void WriteSerializedMember(string? memberName,
