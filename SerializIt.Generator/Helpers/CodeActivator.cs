@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -10,6 +11,8 @@ namespace SerializIt.Generator.Helpers;
 
 public static class CodeActivator
 {
+    private static readonly AssemblyLoadContext assemblyLoadContext = new GeneratorAssemblyLoadContext();
+
     public static T? Attribute<T>(string code) where T : Attribute
     {
         if (string.IsNullOrWhiteSpace(code))
@@ -76,7 +79,7 @@ public static class CodeActivator
         {
             // load assembly from memory
             ms.Seek(0, SeekOrigin.Begin);
-            var assembly = Assembly.Load(ms.ToArray());
+            var assembly = assemblyLoadContext.LoadFromStream(ms);
 
             // create an instance for the compiled type
             var type = assembly.GetType(fullName);
