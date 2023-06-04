@@ -22,7 +22,7 @@ public static class CodeActivator
         }
 
 #if LOGS
-        Log.Warn("Create instance of attribute: {0}", code);
+        Log.Debug("Create instance of attribute: {0}", code);
 #endif
 
         // Referenced assemblies
@@ -71,8 +71,12 @@ public static class CodeActivator
         var state = task.Result;
         var result = state.ReturnValue;
 
+#if LOGS
+        Log.Debug("Attribute instance: {0} (Is <{1}>: {2})", result, typeof(T).FullName, result is T);
+#endif
+
         // Needs cast, as assemblies might not be the same
-        return Caster.CastTo(ref result, typeof(T)) as T;
+        return result as T;
     }
 
     internal static void AddMetadataRef(this List<MetadataReference> list, Type type) =>

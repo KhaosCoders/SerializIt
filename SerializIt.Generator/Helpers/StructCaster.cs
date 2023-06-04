@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace SerializIt.Generator.Helpers;
 
-public static class Caster
+public static class StructCaster
 {
     /// <summary>
     /// Casts an instance of a struct to another struct of the same memory layout

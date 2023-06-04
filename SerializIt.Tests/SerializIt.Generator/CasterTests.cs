@@ -25,7 +25,7 @@ public class CasterTests
         object s = new S1() { id = 1, name = "test" };
         var s1 = (S1)s;
 
-        var x = Caster.CastTo(ref s, typeof(S2));
+        var x = StructCaster.CastTo(ref s, typeof(S2));
         var s2 = (S2)x;
 
         Assert.AreEqual(s1.id, s2.id);
