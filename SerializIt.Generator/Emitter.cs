@@ -53,7 +53,12 @@ internal static class Emitter
 
         // Augment SerializationContext with serializer properties for each type
         var code = SerializationContextGenerator.Generate(serializationContext);
-        context.AddSource($"{serializationContext.ContextNamespace}.{serializationContext.ClassName}.generated.cs", SourceText.From(code, Encoding.UTF8));
+        var file = $"{serializationContext.ContextNamespace}.{serializationContext.ClassName}.generated.cs";
+
+#if LOGS
+        Log.Debug("Generated code: {File}: {Code}", file, code);
+#endif
+        context.AddSource(file, SourceText.From(code, Encoding.UTF8));
 
         // Build serializers
         foreach (var seralizeType in serializationContext.SerializeTypes)
@@ -65,6 +70,11 @@ internal static class Emitter
     private static void EmitTypeSerializationClass(SerializationContext serializationContext, SerializeType serializationInfo, SourceProductionContext context)
     {
         var code = SerializationGenerator.Generate(serializationContext, serializationInfo);
-        context.AddSource($"{serializationContext.SerializerNamespace}.{serializationInfo.SerializerName}.generated.cs", code);
+        var file = $"{serializationContext.SerializerNamespace}.{serializationInfo.SerializerName}.generated.cs";
+
+#if LOGS
+        Log.Debug("Generated code: {File}: {Code}", file, code);
+#endif
+        context.AddSource(file, code);
     }
 }
