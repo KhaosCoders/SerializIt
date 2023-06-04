@@ -56,7 +56,7 @@ internal static class Emitter
         var file = $"{serializationContext.ContextNamespace}.{serializationContext.ClassName}.generated.cs";
 
 #if LOGS
-        Log.Debug("Generated code: {0}: {1}", file, code);
+        Log.Debug($"Generated code: {file}: {code}");
 #endif
         context.AddSource(file, SourceText.From(code, Encoding.UTF8));
 
@@ -73,7 +73,7 @@ internal static class Emitter
         var file = $"{serializationContext.SerializerNamespace}.{serializationInfo.SerializerName}.generated.cs";
 
 #if LOGS
-        Log.Debug("Generated code: {0}: {1}", file, code);
+        Log.Debug($"Generated code: {file}: {code}");
 #endif
         context.AddSource(file, code);
     }
