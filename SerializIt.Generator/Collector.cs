@@ -133,27 +133,40 @@ internal static class Collector
             var attrSymbol = classSymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass?.Name == nameof(SerializerAttribute));
             if (attrSymbol == null)
             {
+#if LOGS
+                Log.Warn("SerializationContext has no SerializerAttribute!");
+#endif
                 return;
             }
 
             // Create an instance of the SerializerAttribute
             var attr = CodeActivator.Attribute<SerializerAttribute>(attrSymbol.ToString());
-            if (attr is not null)
+            if (attr is null)
             {
-                // Try getting the serializer type
-                var serializerType = SerializerFactory.GetSerializerType(attr);
-                if (serializerType != null && typeof(ISerializer).IsAssignableFrom(serializerType))
-                {
-                    // Create an instance of the serializer type
-                    serializationContext.Serializer = (ISerializer)Activator.CreateInstance(serializerType);
-                }
-
-                // Assign a Namespace, if defined by user
-                if (!string.IsNullOrWhiteSpace(attr.Namespace))
-                {
-                    serializationContext.SerializerNamespace = attr.Namespace;
-                }
+#if LOGS
+                Log.Warn("SerializerAttribute was not instanceable!");
+#endif
+                return;
             }
+
+            // Assign a Namespace, if defined by user
+            if (!string.IsNullOrWhiteSpace(attr.Namespace))
+            {
+                serializationContext.SerializerNamespace = attr.Namespace;
+            }
+
+            // Try getting the serializer type
+            var serializerType = SerializerFactory.GetSerializerType(attr);
+            if (serializerType is null || !typeof(ISerializer).IsAssignableFrom(serializerType))
+            {
+#if LOGS
+                Log.Warn("Serializer was not found!");
+#endif
+                return;
+            }
+
+            // Create an instance of the serializer type
+            serializationContext.Serializer = (ISerializer)Activator.CreateInstance(serializerType);
         }
         catch (Exception e)
         {

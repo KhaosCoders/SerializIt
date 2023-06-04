@@ -17,6 +17,12 @@ internal static class Log
         File.AppendAllText(logFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [DBG] {string.Format(message, @params)}{Environment.NewLine}");
     }
 
+    public static void Warn(string message, params object[] @params)
+    {
+        if (logFile == null) return;
+        File.AppendAllText(logFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [WRN] {string.Format(message, @params)}{Environment.NewLine}");
+    }
+
     public static void Fatal(Exception? ex, string message, params object[] @params)
     {
         if (logFile == null) return;
