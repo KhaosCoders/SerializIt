@@ -71,12 +71,13 @@ public static class CodeActivator
         var state = task.Result;
         var result = state.ReturnValue;
 
-#if LOGS
-        Log.Debug("Attribute instance: {0} (Is <{1}>: {2})", result, typeof(T).FullName, result is T);
-#endif
+        if (result is T t)
+        {
+            return t;
+        }
 
         // Needs cast, as assemblies might not be the same
-        return result as T;
+        return System.Convert.ChangeType(result, typeof(T)) as T;
     }
 
     internal static void AddMetadataRef(this List<MetadataReference> list, Type type) =>
