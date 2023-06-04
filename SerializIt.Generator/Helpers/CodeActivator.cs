@@ -69,7 +69,10 @@ public static class CodeActivator
 
         // Return result
         var state = task.Result;
-        return state.ReturnValue as T;
+        var result = state.ReturnValue;
+
+        // Needs cast, as assemblies might not be the same
+        return Caster.CastTo(ref result, typeof(T)) as T;
     }
 
     internal static void AddMetadataRef(this List<MetadataReference> list, Type type) =>
