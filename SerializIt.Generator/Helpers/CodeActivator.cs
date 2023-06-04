@@ -15,8 +15,15 @@ public static class CodeActivator
     {
         if (string.IsNullOrWhiteSpace(code))
         {
+#if LOGS
+            Log.Warn("Attribute code is empty: {0}", code);
+#endif
             return default;
         }
+
+#if LOGS
+        Log.Warn("Create instance of attribute: {0}", code);
+#endif
 
         // Referenced assemblies
         List<MetadataReference> references = new();
