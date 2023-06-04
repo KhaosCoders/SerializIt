@@ -33,6 +33,8 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <None Include="..\SerializIt.Generator\bin\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Scripting.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\SerializIt.Generator\bin\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Scripting.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\SerializIt.Generator\bin\$(Configuration)\netstandard2.0\SerializIt.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="bin\$(Configuration)\netstandard2.0\SerializIt.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
