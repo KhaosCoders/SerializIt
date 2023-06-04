@@ -5,7 +5,9 @@ public struct YamlSerializerOptions : ISerializerOptions
     public bool AddPreamble { get; set; }
     public bool AddPostamble { get; set; }
     public bool UseParallel { get; set; }
-    public string? IndentChars { get; set; }
+    public string IndentChars { get; set; } = "  ";
+
+    public YamlSerializerOptions() { }
 }
 
 public class YamlOptionsAttribute : OptionsAttribute
@@ -18,7 +20,7 @@ public class YamlOptionsAttribute : OptionsAttribute
 
     public YamlOptionsAttribute(bool addPreamble = false,
                                 bool addPostamble = false,
-                                string? indentChars = default,
+                                string indentChars = "  ",
                                 bool useParallel = false)
     {
         YamlOptions = new YamlSerializerOptions()
