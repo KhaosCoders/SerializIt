@@ -40,14 +40,14 @@ public class SerializItGeneratorTests
     {
         var compilation = SerializerTestData.CreateCompilation(source);
         var diag = compilation.GetDiagnostics();
-        Assert.IsTrue(diag.IsEmpty);
+        Assert.IsTrue(diag.IsEmpty, diag.FirstOrDefault()?.GetMessage());
 
         SerializItGenerator generator = new();
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator });
         driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
 
-        Assert.IsTrue(diagnostics.IsEmpty);
+        Assert.IsTrue(diagnostics.IsEmpty, diagnostics.FirstOrDefault()?.GetMessage());
         Assert.AreEqual(5, outputCompilation.SyntaxTrees.Count());
 
         AssetSerializerClass(outputCompilation.SyntaxTrees.Skip(2).First().ToString(), "DataType");

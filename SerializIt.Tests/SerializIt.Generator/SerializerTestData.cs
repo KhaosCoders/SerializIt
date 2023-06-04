@@ -47,6 +47,10 @@ public class ContainerType
 public partial class Serializer{ }
 
 }
+
+namespace System.Runtime.CompilerServices {
+    internal static class IsExternalInit { }
+}
 ";
 
     public static Compilation CreateCompilation(string source)

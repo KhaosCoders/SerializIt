@@ -34,7 +34,9 @@ public class SerializItGenerator : IIncrementalGenerator
 #if LOGS
                     if (asm == null)
                     {
+#pragma warning disable RS1035 // Do not use APIs banned for analyzers
                         Log.Debug($"Assembly not found! Loaded assemblies: {Environment.NewLine}{string.Join(Environment.NewLine, assemblies.AsEnumerable())}");
+#pragma warning restore RS1035 // Do not use APIs banned for analyzers
                     }
 #endif
                     return asm;

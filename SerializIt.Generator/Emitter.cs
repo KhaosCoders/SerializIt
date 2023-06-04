@@ -17,7 +17,9 @@ internal static class Emitter
         try
         {
 #if LOGS
+#pragma warning disable RS1035 // Do not use APIs banned for analyzers
             Log.Debug("Emit {0} contexts: {1}{2}", source.Types.Length, Environment.NewLine, string.Join(Environment.NewLine, source.Types));
+#pragma warning restore RS1035 // Do not use APIs banned for analyzers
 #endif
             var compilation = source.Compilation;
 

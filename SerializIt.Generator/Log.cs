@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 
 #if LOGS
+#pragma warning disable RS1035 // Do not use APIs banned for analyzers
 
 namespace SerializIt.Generator;
 
@@ -45,4 +46,5 @@ internal static class Log
     }
 }
 
+#pragma warning restore RS1035 // Do not use APIs banned for analyzers
 #endif
