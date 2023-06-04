@@ -11,30 +11,30 @@ internal static class Log
 {
     private static readonly string? logFile = Environment.GetEnvironmentVariable("SERIALIZIT_LOG");
 
-    public static void Debug(string message, params object[] @params)
+    public static void Debug(string message)
     {
         if (logFile == null) return;
-        File.AppendAllText(logFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [DBG] {string.Format(message, @params)}{Environment.NewLine}");
+        File.AppendAllText(logFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [DBG] {message}{Environment.NewLine}");
     }
 
-    public static void Warn(string message, params object[] @params)
+    public static void Warn(string message)
     {
         if (logFile == null) return;
-        File.AppendAllText(logFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [WRN] {string.Format(message, @params)}{Environment.NewLine}");
+        File.AppendAllText(logFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [WRN] {message}{Environment.NewLine}");
     }
 
-    public static void Fatal(Exception? ex, string message, params object[] @params)
+    public static void Fatal(Exception? ex, string message)
     {
         if (logFile == null) return;
         if (ex == null)
         {
-            File.AppendAllText(logFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [FTL] {string.Format(message, @params)}{Environment.NewLine}");
+            File.AppendAllText(logFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [FTL] {message}{Environment.NewLine}");
             return;
         }
         StringBuilder sb = new();
         BuildExceptionString(sb, ex);
 
-        File.AppendAllText(logFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [FTL] {string.Format(message, @params)}{Environment.NewLine}{sb}{Environment.NewLine}");
+        File.AppendAllText(logFile, $"{DateTime.Now:dd.MM.yyyy hh:mm:ss} [FTL] {message}{Environment.NewLine}{sb}{Environment.NewLine}");
     }
 
     private static void BuildExceptionString(StringBuilder sb, Exception ex)

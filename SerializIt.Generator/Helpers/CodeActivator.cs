@@ -16,13 +16,13 @@ public static class CodeActivator
         if (string.IsNullOrWhiteSpace(code))
         {
 #if LOGS
-            Log.Warn("Attribute code is empty: {0}", code);
+            Log.Warn($"Attribute code is empty: {code}");
 #endif
             return default;
         }
 
 #if LOGS
-        Log.Debug("Create instance of attribute: {0}", code);
+        Log.Debug($"Create instance of attribute: {code}");
 #endif
 
         // Referenced assemblies
@@ -57,7 +57,7 @@ public static class CodeActivator
             Log.Warn("Compile errors:");
             foreach (var diagnostic in failures)
             {
-                Log.Warn("{0}: {1}", diagnostic.Id, diagnostic.GetMessage());
+                Log.Warn($"{diagnostic.Id}: {diagnostic.GetMessage()}");
             }
 #endif
             return default;
@@ -84,8 +84,10 @@ public static class CodeActivator
         // Needs cast, as assemblies might not be the same
         unsafe
         {
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
             T* ret = (T*)& result;
             return *ret;
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
         }
     }
 
