@@ -46,10 +46,13 @@ public static class CodeActivator
 
         if (failures.Any())
         {
+#if LOGS
+            Log.Warn("Compile errors:");
             foreach (var diagnostic in failures)
             {
-                Console.Error.WriteLine("{0}: {1}", diagnostic.Id, diagnostic.GetMessage());
+                Log.Warn("{0}: {1}", diagnostic.Id, diagnostic.GetMessage());
             }
+#endif
             return default;
         }
 
