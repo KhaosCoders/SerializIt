@@ -26,7 +26,7 @@ public class YamlSerializerOptionsTests
         var opt = attr.YamlOptions.Value;
         Assert.IsFalse(opt.AddPreamble);
         Assert.IsFalse(opt.AddPostamble);
-        Assert.IsNull(opt.IndentChars);
+        Assert.AreEqual("  ", opt.IndentChars);
         Assert.IsFalse(opt.UseParallel);
     }
 
